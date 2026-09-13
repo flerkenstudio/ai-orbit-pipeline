@@ -37,12 +37,7 @@ def export_to_supabase(entities, relationships, report):
     run_result = client.table("pipeline_runs").insert(run_data).execute()
     run_id = run_result.data[0]["id"] if run_result.data else None
 
-    # 2. Clear old data and insert fresh entities
-    try:
-        client.table("ai_tools").delete().neq("id", "00000000-0000-0000-0000-000000000000").execute()
-    except Exception as e:
-        log.warning("Could not clear old ai_tools: %s", e)
-
+    # 2. Incrementally upsert entities (retains existing records, updates re-scraped ones)
     rows = []
     for e in entities:
         rows.append({
@@ -61,8 +56,8 @@ def export_to_supabase(entities, relationships, report):
             "last_verified": e.last_verified or None,
         })
 
-    # Insert in batches of 50
-    batch_size = 50
+    # Insert / Upsert in batches of 100
+    batch_size = 100
     for i in range(0, len(rows), batch_size):
         batch = rows[i:i + batch_size]
         try:
@@ -71,12 +66,7 @@ def export_to_supabase(entities, relationships, report):
         except Exception as exc:
             log.error("  Failed ai_tools batch %d: %s", i, exc)
 
-    # 3. Clear old relationships and insert new ones
-    try:
-        client.table("ai_relationships").delete().neq("id", 0).execute()
-    except Exception as e:
-        log.warning("Could not clear old ai_relationships: %s", e)
-
+    # 3. Incrementally insert relationships
     if relationships:
         rel_rows = [{"subject": r["subject"], "predicate": r["predicate"],
                      "object": r["object"]} for r in relationships]

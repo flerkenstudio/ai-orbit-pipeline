@@ -3,6 +3,7 @@ AI Orbit Data Ingestion Pipeline — entry point.
 Pipeline: Discovery -> Extraction -> Cleaning -> Deduplication ->
           Classification -> Relationships -> Validation -> Export
 """
+import concurrent.futures
 import logging
 import os
 
@@ -22,6 +23,22 @@ from src.export.exporters import (export_entities, export_relationships,
 from src.export.supabase_exporter import export_to_supabase
 
 
+def _enrich_single_candidate(cand):
+    try:
+        enrich_from_official_site(cand)
+        cand.description = clean_description(cand.description)
+        if len(cand.description) < 30 and getattr(cand, "features", None):
+            feat_text = ". ".join(cand.features[:2])
+            cand.description = clean_description(f"{cand.description} — {feat_text}".strip(" —"))
+        if len(cand.description) < 30:
+            cand.description = clean_description(
+                f"{cand.name} — AI powered platform and tool for {cand.category_hint or 'automation and productivity'}."
+            )
+    except Exception:
+        pass
+    return cand
+
+
 def run_pipeline(progress_callback=None, stop_check=None):
     os.makedirs("logs", exist_ok=True)
     logging.basicConfig(
@@ -33,7 +50,7 @@ def run_pipeline(progress_callback=None, stop_check=None):
     log = logging.getLogger("pipeline")
     log.info("=== AI Orbit Pipeline starting ===")
     if progress_callback:
-        progress_callback({"type": "stage", "stage": "discovery", "message": "Starting discovery across Seed, GitHub, Hacker News..."})
+        progress_callback({"type": "stage", "stage": "discovery", "message": "Starting discovery across Seed, GitHub, Hacker News, Hugging Face, Awesome Lists..."})
 
     if stop_check and stop_check():
         log.warning("Pipeline run cancelled before discovery.")
@@ -73,52 +90,59 @@ def run_pipeline(progress_callback=None, stop_check=None):
             "message": f"Discovered {len(candidates)} candidates ({len(unique_cands)} unique domains). Starting deep enrichment..."
         })
 
-    # 2-3. EXTRACTION + CLEANING (official-site verification)
+    # 2-3. EXTRACTION + CLEANING (parallel official-site verification)
     resolver = EntityResolver()
     total_cands = len(unique_cands)
-    for idx, cand in enumerate(unique_cands, 1):
-        if stop_check and stop_check():
-            log.warning("Pipeline run stopped by user request at %d/%d.", idx - 1, total_cands)
-            if progress_callback:
+    processed_count = 0
+    max_workers = min(25, max(4, (os.cpu_count() or 4) * 4))
+
+    log.info("Starting parallel enrichment of %d candidates across %d worker threads...",
+             total_cands, max_workers)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        future_to_cand = {executor.submit(_enrich_single_candidate, c): c for c in unique_cands}
+        for future in concurrent.futures.as_completed(future_to_cand):
+            if stop_check and stop_check():
+                log.warning("Pipeline run stopped by user request at %d/%d.", processed_count, total_cands)
+                executor.shutdown(wait=False, cancel_futures=True)
+                if progress_callback:
+                    progress_callback({
+                        "type": "stopped",
+                        "stage": "stopped",
+                        "message": f"Pipeline stopped by user at tool {processed_count}/{total_cands}."
+                    })
+                return {
+                    "entities_count": len(resolver.by_domain),
+                    "stopped": True
+                }
+
+            processed_count += 1
+            cand = future_to_cand[future]
+            try:
+                enriched_cand = future.result()
+            except Exception:
+                enriched_cand = cand
+
+            entity, action = resolver.resolve(enriched_cand)
+            log.debug("%-30s -> %s", enriched_cand.name[:30], action)
+
+            if progress_callback and (processed_count % 2 == 0 or processed_count == total_cands):
                 progress_callback({
-                    "type": "stopped",
-                    "stage": "stopped",
-                    "message": f"Pipeline stopped by user at tool {idx - 1}/{total_cands}."
+                    "type": "progress",
+                    "stage": "extraction",
+                    "current": processed_count,
+                    "total": total_cands,
+                    "percent": round((processed_count / total_cands) * 100, 1),
+                    "tool": {
+                        "name": enriched_cand.name,
+                        "url": enriched_cand.url,
+                        "logo_url": getattr(enriched_cand, "logo_url", ""),
+                        "pricing": getattr(enriched_cand, "pricing", ""),
+                        "verified": enriched_cand.verified,
+                        "http_status": enriched_cand.http_status,
+                    },
+                    "message": f"[{processed_count}/{total_cands}] Enriched {enriched_cand.name} ({getattr(enriched_cand, 'pricing', '')})"
                 })
-            return {
-                "entities_count": len(resolver.by_domain),
-                "stopped": True
-            }
-
-        enrich_from_official_site(cand)
-        cand.description = clean_description(cand.description)
-        if len(cand.description) < 30 and getattr(cand, "features", None):
-            feat_text = ". ".join(cand.features[:2])
-            cand.description = clean_description(f"{cand.description} — {feat_text}".strip(" —"))
-        if len(cand.description) < 30:
-            cand.description = clean_description(
-                f"{cand.name} — AI powered platform and tool for {cand.category_hint or 'automation and productivity'}."
-            )
-        entity, action = resolver.resolve(cand)
-        log.debug("%-30s -> %s", cand.name[:30], action)
-
-        if progress_callback and (idx % 1 == 0 or idx == total_cands):
-            progress_callback({
-                "type": "progress",
-                "stage": "extraction",
-                "current": idx,
-                "total": total_cands,
-                "percent": round((idx / total_cands) * 100, 1),
-                "tool": {
-                    "name": cand.name,
-                    "url": cand.url,
-                    "logo_url": getattr(cand, "logo_url", ""),
-                    "pricing": getattr(cand, "pricing", ""),
-                    "verified": cand.verified,
-                    "http_status": cand.http_status,
-                },
-                "message": f"[{idx}/{total_cands}] Enriched {cand.name} ({getattr(cand, 'pricing', '')})"
-            })
 
     entities = list(resolver.by_domain.values())
 
@@ -153,9 +177,9 @@ def run_pipeline(progress_callback=None, stop_check=None):
         print(f"  - {issue}: {len(names)} records")
     print("=" * 60)
 
-    export_entities(entities)
+    cumulative_entities = export_entities(entities)
     export_relationships(relationships)
-    export_sheets_csv(entities)
+    export_sheets_csv(cumulative_entities)
     try:
         export_to_google_sheets_api(entities)
     except Exception as gerr:

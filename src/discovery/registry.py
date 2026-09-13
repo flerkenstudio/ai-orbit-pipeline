@@ -4,12 +4,20 @@ import logging
 from src.discovery.seed_source import SeedSource
 from src.discovery.github_source import GitHubSource
 from src.discovery.hackernews_source import HackerNewsSource
+from src.discovery.huggingface_source import HuggingFaceSource
+from src.discovery.awesome_lists_source import AwesomeListsSource
 
 log = logging.getLogger("pipeline")
 
 
 def run_discovery() -> list:
-    sources = [SeedSource(), GitHubSource(), HackerNewsSource()]
+    sources = [
+        SeedSource(),
+        GitHubSource(),
+        HackerNewsSource(),
+        HuggingFaceSource(),
+        AwesomeListsSource(),
+    ]
     all_candidates = []
     for src in sources:
         try:

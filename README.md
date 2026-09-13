@@ -39,15 +39,15 @@ The pipeline operates as a staged, decoupled ingestion pipeline with error isola
 ```
 ┌─────────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
 │  Discovery  │ ──> │  Extraction  │ ──> │   Cleaning   │ ──> │ Resolution & │
-│ (Seed, GH,  │     │  (Pricing,   │     │ (HTML sanit, │     │ Deduplication│
-│     HN)     │     │ Feats, Logos)│     │ URLs, text)  │     │(Domain+Fuzzy)│
+│ (GH, HF, HN,│     │  (Parallel   │     │ (HTML sanit, │     │ Deduplication│
+│Seed, Awesome│     │ 25+ Workers) │     │ URLs, text)  │     │(Domain+Fuzzy)│
 └─────────────┘     └──────────────┘     └──────────────┘     └──────────────┘
                                                                       │
                                                                       ▼
 ┌─────────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-│   Export    │ <── │  Validation  │ <── │Relationship  │ <── │Classification│
-│ (Supabase,  │     │ Quality Gate │     │   Graph      │     │  (Taxonomy   │
-│  CSV, JSON) │     │ (Pass / Fail)│     │  Builder     │     │  Categories) │
+│  Incremental│ <── │  Validation  │ <── │Relationship  │ <── │Classification│
+│   Export    │     │ Quality Gate │     │   Graph      │     │  (Taxonomy   │
+│(Supabase/CSV│     │ (Pass / Fail)│     │  Builder     │     │  Categories) │
 └─────────────┘     └──────────────┘     └──────────────┘     └──────────────┘
 ```
 
@@ -57,7 +57,9 @@ Each stage lives in its own package under `src/`, allowing any component to be e
 
 ## Key Features
 
-- **Multi-Source Discovery**: Integrates curated seeds, GitHub Search API (topics, stars, activity), and Hacker News Algolia API with noise filtering (excludes opinion articles, lay-off news, and controversies).
+- **Multi-Source Discovery Engine**: Ingests thousands of candidates across GitHub Search API, Hugging Face Hub Spaces API, Hacker News Algolia API, Curated Awesome-AI markdown registries, and high-signal seed sources.
+- **Incremental Accumulation (50K Target)**: Seamlessly accumulates toward the **50,000 AI Tools** milestone across repeated batch runs using Supabase table upserts and cumulative JSON/CSV merges without wiping historic data.
+- **High-Concurrency Parallel Scraping**: Concurrent `ThreadPoolExecutor` worker pool scrapes, probes, and enriches 20+ candidate websites simultaneously for 10x faster execution.
 - **Deep Feature & Pricing Extraction**:
   - **Pricing Model**: Classifies tools as `Freemium`, `Open Source`, `Free`, or `Paid` via heuristic DOM and copy analysis.
   - **Key Features**: Extracts core value propositions, pitch statements, and capabilities from `<h1>`, `<h2>`, and structured lists.

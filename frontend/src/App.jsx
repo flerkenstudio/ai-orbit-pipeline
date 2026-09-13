@@ -213,25 +213,35 @@ export default function App() {
       </header>
 
       {/* ── Stats Bar ───────────────────────────────── */}
-      <div className="bg-white px-6 py-3 border-b border-gray-200 flex items-center gap-8 text-sm">
+      <div className="bg-white px-6 py-3 border-b border-gray-200 flex items-center gap-8 text-sm flex-wrap">
         <div className="flex flex-col">
           <span className="text-gray-500 text-xs font-medium">Total Tools</span>
-          <span className="text-xl font-bold text-gray-900">{totalTools}</span>
+          <span className="text-xl font-bold text-gray-900">{totalTools.toLocaleString()}</span>
+        </div>
+        <div className="h-8 w-px bg-gray-200"></div>
+        <div className="flex flex-col">
+          <span className="text-gray-500 text-xs font-medium">50K Target Progress</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xl font-bold text-indigo-600">
+              {((totalTools / 50000) * 100).toFixed(1)}%
+            </span>
+            <span className="text-xs text-gray-400 font-medium">({totalTools.toLocaleString()} / 50K)</span>
+          </div>
         </div>
         <div className="h-8 w-px bg-gray-200"></div>
         <div className="flex flex-col">
           <span className="text-gray-500 text-xs font-medium">Verified</span>
-          <span className="text-xl font-bold text-green-600">{verifiedCount}</span>
+          <span className="text-xl font-bold text-green-600">{verifiedCount.toLocaleString()}</span>
         </div>
         <div className="h-8 w-px bg-gray-200"></div>
         <div className="flex flex-col">
           <span className="text-gray-500 text-xs font-medium">Pending</span>
-          <span className="text-xl font-bold text-yellow-600">{pendingCount}</span>
+          <span className="text-xl font-bold text-yellow-600">{pendingCount.toLocaleString()}</span>
         </div>
         <div className="h-8 w-px bg-gray-200"></div>
         <div className="flex flex-col">
           <span className="text-gray-500 text-xs font-medium">Categories</span>
-          <span className="text-xl font-bold text-blue-600">{allCategories.length - 1}</span>
+          <span className="text-xl font-bold text-blue-600">{Math.max(0, allCategories.length - 1)}</span>
         </div>
       </div>
 
