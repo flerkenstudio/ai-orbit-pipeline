@@ -1,10 +1,6 @@
 # AI Orbit Data Ingestion Pipeline & Web Dashboard
 
 <p align="center">
-  <img src="frontend/public/favicon.svg" width="72" height="72" alt="AI Orbit Logo" />
-</p>
-
-<p align="center">
   <strong>API-first, modular ingestion engine and real-time dashboard for discovering, scraping, classifying, and deduplicating AI tools across the web.</strong>
 </p>
 
