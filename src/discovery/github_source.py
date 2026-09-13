@@ -1,5 +1,6 @@
 """Discovery via GitHub Search API (API-first, no scraping)."""
 import logging
+import time
 import requests
 
 from src.discovery.base import BaseSource, Candidate
@@ -29,7 +30,7 @@ QUERIES = [
 class GitHubSource(BaseSource):
     name = "github"
 
-    def __init__(self, max_pages: int = 2 if GITHUB_TOKEN else 1):
+    def __init__(self, max_pages: int = 3 if GITHUB_TOKEN else 1):
         self.max_pages = max_pages
 
     def discover(self) -> list:
@@ -41,6 +42,7 @@ class GitHubSource(BaseSource):
         for q in QUERIES:
             for page in range(1, self.max_pages + 1):
                 try:
+                    time.sleep(1.5)
                     r = _session.get(
                         "https://api.github.com/search/repositories",
                         params={"q": q, "per_page": 50, "page": page, "sort": "stars"},
