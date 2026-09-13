@@ -87,11 +87,19 @@ The web dashboard provides a complete control center and spreadsheet view for th
 
 - **Google-Sheets-Style Interface**: Powered by AG Grid Community with column filtering, sorting, multiple selections, and instant CSV export.
 - **Centered Modal Pipeline Runner**: Click **"Run Pipeline"** in the top navigation to open a clean modal dialog.
-- **Real-Time SSE Streaming**: Live progress bar, stage indicator, and real-time counter (`42 / 390 tools processed`).
+- **Real-Time SSE Streaming**: Live progress bar, stage indicator, and real-time counter (`144 / 390 tools processed`).
 - **Currently Enriching Card**: Live preview showing the tool currently being scraped with its logo, detected pricing, and HTTP status.
 - **Live Terminal Window**: Embedded console streaming formatted `pipeline.log` output with color-coded levels (`INFO`, `WARNING`, `ERROR`, `SUCCESS`).
 - **Stop / Cancel Control**: Red **"Stop Pipeline"** button cleanly halts crawling at any time without corrupting database state.
 - **Auto-Sync**: Automatically refreshes the table grid upon pipeline completion.
+
+<p align="center">
+  <img src="docs/screenshots/dashboard.png" alt="AI Orbit Dashboard" width="95%" />
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/pipeline_runner_modal.png" alt="Pipeline Control & Live Monitor Modal" width="75%" />
+</p>
 
 ---
 
@@ -139,6 +147,10 @@ pip install -r requirements.txt
 # Run ingestion pipeline
 python run.py
 ```
+
+<p align="center">
+  <img src="docs/screenshots/terminal_run.png" alt="CLI Ingestion Pipeline Execution" width="95%" />
+</p>
 
 ---
 
