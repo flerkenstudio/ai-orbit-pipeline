@@ -3,7 +3,7 @@ import logging
 import re
 from src.discovery.base import BaseSource, Candidate
 from src.utils.http_client import _session
-from src.config import USER_AGENT
+from src.config import USER_AGENT, HF_TOKEN
 
 log = logging.getLogger("pipeline")
 
@@ -19,6 +19,8 @@ class HuggingFaceSource(BaseSource):
         out = []
         url = f"https://huggingface.co/api/spaces?limit={self.limit_per_page}&sort=likes&direction=-1"
         headers = {"User-Agent": USER_AGENT}
+        if HF_TOKEN:
+            headers["Authorization"] = f"Bearer {HF_TOKEN}"
 
         for page in range(1, self.max_pages + 1):
             try:

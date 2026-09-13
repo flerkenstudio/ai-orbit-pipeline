@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")  # optional, raises rate limits
+HF_TOKEN = os.getenv("HF_TOKEN", "")          # optional Hugging Face token for bulk Spaces
 
 # Supabase
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
