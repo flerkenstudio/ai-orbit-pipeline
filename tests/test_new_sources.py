@@ -63,3 +63,45 @@ def test_awesome_lists_source_parsing():
     names = [c.name for c in candidates]
     assert "Cursor" in names
     assert "Midjourney" in names
+
+
+def test_producthunt_source_parsing():
+    from src.discovery.producthunt_source import ProductHuntSource
+
+    mock_resp = MagicMock()
+    mock_resp.status_code = 200
+    mock_resp.json.return_value = {
+        "data": {
+            "posts": {
+                "pageInfo": {"hasNextPage": False, "endCursor": None},
+                "edges": [
+                    {
+                        "node": {
+                            "id": "123",
+                            "name": "SuperAI",
+                            "tagline": "The all-in-one AI platform",
+                            "website": "https://superai.com",
+                            "url": "https://producthunt.com/products/superai",
+                            "votesCount": 450,
+                            "thumbnail": {"url": "https://logo.com/superai.png"},
+                            "topics": {"edges": [{"node": {"name": "Artificial Intelligence"}}]},
+                        }
+                    }
+                ]
+            }
+        }
+    }
+
+    with patch("src.discovery.producthunt_source.PRODUCT_HUNT_TOKEN", "mock_token"), \
+         patch("src.discovery.producthunt_source._session.post", return_value=mock_resp):
+        source = ProductHuntSource(first=5, max_pages=1)
+        cands = source.discover()
+
+    assert len(cands) == 1
+    c = cands[0]
+    assert c.name == "SuperAI"
+    assert c.url == "https://superai.com"
+    assert c.logo_url == "https://logo.com/superai.png"
+    assert c.pricing == "Freemium"
+    assert c.source_name == "Product Hunt"
+

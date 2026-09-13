@@ -11,7 +11,7 @@ log = logging.getLogger("pipeline")
 class HuggingFaceSource(BaseSource):
     name = "huggingface"
 
-    def __init__(self, limit_per_page: int = 100, max_pages: int = 5):
+    def __init__(self, limit_per_page: int = 100, max_pages: int = 10 if HF_TOKEN else 5):
         self.limit_per_page = limit_per_page
         self.max_pages = max_pages
 

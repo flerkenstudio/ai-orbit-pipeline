@@ -6,6 +6,7 @@ from src.discovery.github_source import GitHubSource
 from src.discovery.hackernews_source import HackerNewsSource
 from src.discovery.huggingface_source import HuggingFaceSource
 from src.discovery.awesome_lists_source import AwesomeListsSource
+from src.discovery.producthunt_source import ProductHuntSource
 
 log = logging.getLogger("pipeline")
 
@@ -17,6 +18,7 @@ def run_discovery() -> list:
         HackerNewsSource(),
         HuggingFaceSource(),
         AwesomeListsSource(),
+        ProductHuntSource(),
     ]
     all_candidates = []
     for src in sources:
