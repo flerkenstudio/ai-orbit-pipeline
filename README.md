@@ -1,78 +1,232 @@
-# AI Orbit Data Ingestion Pipeline
+# AI Orbit Data Ingestion Pipeline & Web Dashboard
 
-API-first, modular ingestion engine for building a clean dataset of AI tools.
+<p align="center">
+  <img src="frontend/public/favicon.svg" width="72" height="72" alt="AI Orbit Logo" />
+</p>
 
-## Architecture
+<p align="center">
+  <strong>API-first, modular ingestion engine and real-time dashboard for discovering, scraping, classifying, and deduplicating AI tools across the web.</strong>
+</p>
+
+<p align="center">
+  <a href="https://buymeacoffee.com/flerken"><img src="https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Flerken-orange?style=for-the-badge&logo=buy-me-a-coffee" alt="Buy Me A Coffee" /></a>
+  <img src="https://img.shields.io/badge/python-3.12+-blue.svg?style=for-the-badge&logo=python" alt="Python" />
+  <img src="https://img.shields.io/badge/FastAPI-0.110+-009688.svg?style=for-the-badge&logo=fastapi" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/React-19-61DAFB.svg?style=for-the-badge&logo=react" alt="React" />
+  <img src="https://img.shields.io/badge/Vite-8.3-646CFF.svg?style=for-the-badge&logo=vite" alt="Vite" />
+  <img src="https://img.shields.io/badge/Supabase-Supported-3ECF8E.svg?style=for-the-badge&logo=supabase" alt="Supabase" />
+</p>
+
+---
+
+## Table of Contents
+- [Architecture Overview](#architecture-overview)
+- [Key Features](#key-features)
+- [Entity Resolution & Deduplication](#entity-resolution--deduplication)
+- [Live Interactive Web Dashboard](#live-interactive-web-dashboard)
+- [Quick Start Guide](#quick-start-guide)
+  - [1. Prerequisites & Environment](#1-prerequisites--environment)
+  - [2. CLI Pipeline Run](#2-cli-pipeline-run)
+  - [3. Full Web Application (Backend + Frontend)](#3-full-web-application-backend--frontend)
+- [Pipeline Stages](#pipeline-stages)
+- [Data Storage & Output Formats](#data-storage--output-formats)
+- [Running Automated Tests](#running-automated-tests)
+- [Support & Donations](#support--donations)
+- [License](#license)
+
+---
+
+## Architecture Overview
+
+The pipeline operates as a staged, decoupled ingestion pipeline with error isolation at every step:
+
 ```
-Discovery -> Extraction -> Cleaning -> Normalization -> Deduplication
-          -> Classification -> Relationships -> Validation -> Export
+┌─────────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│  Discovery  │ ──> │  Extraction  │ ──> │   Cleaning   │ ──> │ Resolution & │
+│ (Seed, GH,  │     │  (Pricing,   │     │ (HTML sanit, │     │ Deduplication│
+│     HN)     │     │ Feats, Logos)│     │ URLs, text)  │     │(Domain+Fuzzy)│
+└─────────────┘     └──────────────┘     └──────────────┘     └──────────────┘
+                                                                      │
+                                                                      ▼
+┌─────────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│   Export    │ <── │  Validation  │ <── │Relationship  │ <── │Classification│
+│ (Supabase,  │     │ Quality Gate │     │   Graph      │     │  (Taxonomy   │
+│  CSV, JSON) │     │ (Pass / Fail)│     │  Builder     │     │  Categories) │
+└─────────────┘     └──────────────┘     └──────────────┘     └──────────────┘
 ```
 
-Each stage lives in its own package under `src/`, so any stage can be
-swapped or extended without touching the others.
+Each stage lives in its own package under `src/`, allowing any component to be extended or swapped without affecting the others.
 
-## Entity Resolution Strategy
-1. **Domain-first identity** — the canonical registrable domain
-   (e.g. `openai.com`) is the primary key for merging duplicates.
-2. **Fuzzy name matching** (RapidFuzz, token-sort threshold 92) catches
-   near-duplicates that don't share a domain and flags cross-domain
-   conflicts into a review queue for manual inspection.
-3. **Stable UUIDv5 IDs** are derived from `entity_type + canonical URL`,
-   so re-running the pipeline never changes an existing entity's ID.
+---
 
-## Quick Start
+## Key Features
 
-### 1. Backend & CLI Pipeline
+- **Multi-Source Discovery**: Integrates curated seeds, GitHub Search API (topics, stars, activity), and Hacker News Algolia API with noise filtering (excludes opinion articles, lay-off news, and controversies).
+- **Deep Feature & Pricing Extraction**:
+  - **Pricing Model**: Classifies tools as `Freemium`, `Open Source`, `Free`, or `Paid` via heuristic DOM and copy analysis.
+  - **Key Features**: Extracts core value propositions, pitch statements, and capabilities from `<h1>`, `<h2>`, and structured lists.
+  - **Social Links**: Captures official GitHub repos, Discord communities, Twitter/X profiles, and documentation links.
+  - **Resilient Logos**: Priority search (`apple-touch-icon`, `og:image`, SVG) with high-res Google Favicon service fallback.
+- **Anti-Bot Resilient Crawler**: Uses modern browser request headers and polite exponential backoff to handle bot-protected domains (Cloudflare, etc.).
+- **Deterministic IDs**: Generates stable UUIDv5 IDs derived from `entity_type + canonical URL`, keeping IDs persistent across re-runs.
+- **Quality Gate Validation**: Enforces mandatory name, description length, HTTPS validation, logo presence, and category assignment (100% pass rate).
+
+---
+
+## Entity Resolution & Deduplication
+
+1. **Domain-First Identity**: The canonical registrable domain (e.g. `openai.com`) serves as primary identity for deduplication.
+2. **Fuzzy Name Matching**: RapidFuzz (token-sort ratio $\ge 92$) catches near-duplicates across different subdomains or naming aliases and merges metadata.
+3. **Cross-Domain Safety**: Flags potential conflicts into a review queue to prevent improper merges.
+
+---
+
+## Live Interactive Web Dashboard
+
+The web dashboard provides a complete control center and spreadsheet view for the dataset:
+
+- **Google-Sheets-Style Interface**: Powered by AG Grid Community with column filtering, sorting, multiple selections, and instant CSV export.
+- **Centered Modal Pipeline Runner**: Click **"Run Pipeline"** in the top navigation to open a clean modal dialog.
+- **Real-Time SSE Streaming**: Live progress bar, stage indicator, and real-time counter (`42 / 390 tools processed`).
+- **Currently Enriching Card**: Live preview showing the tool currently being scraped with its logo, detected pricing, and HTTP status.
+- **Live Terminal Window**: Embedded console streaming formatted `pipeline.log` output with color-coded levels (`INFO`, `WARNING`, `ERROR`, `SUCCESS`).
+- **Stop / Cancel Control**: Red **"Stop Pipeline"** button cleanly halts crawling at any time without corrupting database state.
+- **Auto-Sync**: Automatically refreshes the table grid upon pipeline completion.
+
+---
+
+## Quick Start Guide
+
+### 1. Prerequisites & Environment
+
+- **Python 3.10+**
+- **Node.js 18+** & **npm**
+
+Clone the repository and set up environment variables:
+
 ```bash
+git clone https://github.com/flerkenstudio/ai-orbit-pipeline.git
+cd ai-orbit-pipeline
+
+# Copy environment template
+cp .env.example .env
+```
+
+Edit `.env` with your credentials (optional but recommended):
+```env
+# Optional: raises GitHub API rate limits from 60 to 5,000 req/hr
+GITHUB_TOKEN=ghp_your_github_token_here
+
+# Supabase (optional: for remote database synchronization)
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-anon-key-here
+```
+
+---
+
+### 2. CLI Pipeline Run
+
+To execute the data ingestion pipeline directly in your terminal:
+
+```bash
+# Set up Python virtual environment
 python -m venv venv
-source venv/bin/activate      # Windows: venv\Scripts\activate
+source venv/bin/activate       # On Windows: venv\Scripts\activate
+
+# Install dependencies
 pip install -r requirements.txt
-cp .env.example .env          # Add SUPABASE and optional GITHUB_TOKEN credentials
-python run.py                 # Run pipeline directly via CLI
+
+# Run ingestion pipeline
+python run.py
 ```
 
-### 2. Full Interactive Web Dashboard & Real-Time Runner
-Start the FastAPI server and React frontend to run and monitor the pipeline interactively with live progress, streaming logs, and stop controls:
+---
 
+### 3. Full Web Application (Backend + Frontend)
+
+To launch the full interactive web application:
+
+#### Terminal 1 — Start FastAPI Server (Port 8000)
 ```bash
-# Terminal 1 — Start Backend Server (port 8000)
-python server.py
+# Activate virtual environment
+source venv/bin/activate       # On Windows: venv\Scripts\activate
 
-# Terminal 2 — Start Frontend Dashboard (port 5173)
+# Run FastAPI streaming server
+python server.py
+```
+
+#### Terminal 2 — Start Frontend Dashboard (Port 5173)
+```bash
 cd frontend
 npm install
 npm run dev
 ```
-Open `http://localhost:5173` to access the live dashboard.
 
-## Output
+Open **`http://localhost:5173`** in your browser to view the dashboard and run the pipeline interactively.
+
+---
+
+## Pipeline Stages
+
+| Stage | Package / File | Purpose |
+|---|---|---|
+| **1. Discovery** | `src/discovery/` | Multi-source candidate discovery (Seed, GitHub API, Hacker News API). |
+| **2. Extraction** | `src/extraction/` | Official site crawling, pricing detection, feature extraction, logo resolution. |
+| **3. Cleaning** | `src/cleaning/` | URL canonicalization, HTML stripping, description clamping, entity sanitization. |
+| **4. Normalization** | `src/normalization/` | Name cleaning, company suffix stripping, alias collection. |
+| **5. Deduplication**| `src/deduplication/`| Domain-first and RapidFuzz fuzzy token-sort entity merging. |
+| **6. Classification**|`src/classification/`| Keyword-based rule engine mapping tools to taxonomy categories. |
+| **7. Relationships**| `src/relationships/`| Edge generation for `Tool -> solves -> Task` knowledge graphs. |
+| **8. Validation** | `src/validation/` | Quality gate verifying schemas, lengths, logos, and links. |
+| **9. Export** | `src/export/` | File generation (`CSV`, `JSON`) and Supabase synchronization. |
+
+---
+
+## Data Storage & Output Formats
 
 | File | Description |
 |---|---|
-| `data/entities.json` | Deduplicated, classified tool records |
-| `data/relationships.json` | `Tool -> solves -> Task` edges |
-| `data/validation_report.json` | Pass/fail counts and issue breakdown |
-| `data/export/tools_sheet.csv` | Flat CSV, ready to import into Google Sheets |
+| [`data/export/tools_sheet.csv`](data/export/tools_sheet.csv) | Flat CSV with Pricing, Features, Websites, Logos, and GitHub repos. |
+| [`data/entities.json`](data/entities.json) | Structured array of deduplicated tool entity objects. |
+| [`data/relationships.json`](data/relationships.json) | Relationship graph edges linking tools to tasks/capabilities. |
+| [`data/validation_report.json`](data/validation_report.json) | Quality gate breakdown with pass/fail counts and validation issues. |
 
-## Running Tests
+---
+
+## Running Automated Tests
+
+Run the test suite with pytest:
 
 ```bash
-pip install pytest
 pytest tests/ -v
 ```
 
-## Scaling Path
-The current run targets ~300 records from 3 sources (curated seed list +
-GitHub + Hacker News). To scale to tens of thousands of records, add more
-`BaseSource` implementations and run discovery + extraction with async
-workers behind a queue — the core architecture (resolve -> classify ->
-validate -> export) doesn't need to change.
+All 12 automated unit tests cover:
+- URL normalization & scheme fallback
+- Canonical domain extraction
+- Entity name canonicalization
+- Deterministic UUIDv5 stability
+- Text cleaner & description length clamping
+- Freemium & Open-Source pricing extractors
+- Social link parsing (GitHub, Discord, Twitter, Docs)
+- Resilient logo fallbacks
 
-## Troubleshooting
+---
 
-| Problem | Fix |
-|---|---|
-| `ModuleNotFoundError: src` | Run `python run.py` from the project root, not from inside `src/` |
-| GitHub returns 403 | Add `GITHUB_TOKEN=ghp_xxx` to `.env` (free token at github.com/settings/tokens) |
-| Many `Site unreachable` warnings | Normal — some sites block bots; those entities are marked `Pending` instead of failing the whole run |
-| Too few entities | Add more rows to `SEEDS` in `src/discovery/seed_source.py` — each is a guaranteed-verified record |
+## Support & Donations
+
+If you find this project helpful, please consider supporting its development:
+
+<p align="left">
+  <a href="https://buymeacoffee.com/flerken">
+    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="50" />
+  </a>
+</p>
+
+- **Buy Me a Coffee**: [buymeacoffee.com/flerken](https://buymeacoffee.com/flerken)
+
+---
+
+## License
+
+MIT License — free for educational and commercial use.
