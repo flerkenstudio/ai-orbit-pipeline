@@ -1,0 +1,17 @@
+.env
+.env*.local
+google-credentials.json
+*-credentials*.json
+*.pem
+*.key
+logs/
+*.log
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+venv/
+.venv/
+frontend/node_modules/
+frontend/dist/
+frontend/.env
