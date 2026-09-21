@@ -13,7 +13,7 @@ from typing import List, Optional
 import uvicorn
 from fastapi import FastAPI, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi.responses import StreamingResponse, JSONResponse, FileResponse
 from pydantic import BaseModel
 
 from urllib.parse import urlparse
@@ -36,7 +36,22 @@ class ScrapeUrlRequest(BaseModel):
     category_hint: Optional[str] = None
 
 
-app = FastAPI(title="AI Orbit Pipeline API")
+class DirectoryScrapeRequest(BaseModel):
+    url: str = "https://www.example.com/"
+    limit: Optional[int] = 100
+    workers: Optional[int] = 25
+
+
+
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app):
+    global main_loop
+    main_loop = asyncio.get_running_loop()
+    yield
+
+app = FastAPI(title="AI Orbit Pipeline API", lifespan=lifespan)
 
 # Enable CORS for frontend dev server
 app.add_middleware(
@@ -59,6 +74,21 @@ state = {
     "last_tool": None,
     "summary": None,
 }
+
+dir_scrape_state = {
+    "is_running": False,
+    "total": 0,
+    "completed": 0,
+    "extracted": 0,
+    "percent": 0.0,
+    "last_tool": None,
+    "output_xlsx": "agenthunter_agents_full.xlsx",
+    "output_csv": "agenthunter_agents_full.csv",
+    "status": "idle",
+    "error": None,
+}
+dir_stop_event = threading.Event()
+
 
 recent_logs = deque(maxlen=250)
 subscribers: List[asyncio.Queue] = []
@@ -151,10 +181,6 @@ def pipeline_worker():
             state["elapsed_seconds"] = round(time.time() - state["start_time"], 1)
 
 
-@app.on_event("startup")
-async def startup_event():
-    global main_loop
-    main_loop = asyncio.get_running_loop()
 
 
 @app.get("/api/pipeline/status")
@@ -316,5 +342,95 @@ async def scrape_single_url(req: ScrapeUrlRequest):
     return result
 
 
+@app.get("/api/pipeline/directory-status")
+async def get_directory_status():
+    """Return status of directory scraping operation."""
+    return dir_scrape_state
+
+
+@app.post("/api/pipeline/scrape-directory")
+async def start_directory_scrape(req: DirectoryScrapeRequest):
+    """Trigger a batch directory scrape (e.g. AgentHunter.io) in background with progress."""
+    if dir_scrape_state["is_running"]:
+        return JSONResponse(status_code=409, content={"error": "A directory scrape is already in progress"})
+
+    dir_stop_event.clear()
+    dir_scrape_state["is_running"] = True
+    dir_scrape_state["total"] = 0
+    dir_scrape_state["completed"] = 0
+    dir_scrape_state["extracted"] = 0
+    dir_scrape_state["percent"] = 0.0
+    dir_scrape_state["last_tool"] = "Starting..."
+    dir_scrape_state["status"] = "running"
+    dir_scrape_state["error"] = None
+
+    limit_val = req.limit
+    workers_val = req.workers or 25
+    domain_slug = urlparse(req.url).netloc.replace(".", "_") or "site"
+    output_filename = f"{domain_slug}_tools_{limit_val if limit_val else 'full'}.xlsx"
+    output_path = os.path.join("data", "export", output_filename)
+    dir_scrape_state["output_xlsx"] = output_filename
+    dir_scrape_state["output_csv"] = output_filename.replace(".xlsx", ".csv")
+
+    def run_worker():
+        from src.scrapers.universal_scraper import run_universal_scraper
+        try:
+            def on_dir_progress(ev):
+                dir_scrape_state["total"] = ev.get("total", dir_scrape_state["total"])
+                dir_scrape_state["completed"] = ev.get("completed", dir_scrape_state["completed"])
+                dir_scrape_state["extracted"] = ev.get("extracted", dir_scrape_state["extracted"])
+                dir_scrape_state["percent"] = ev.get("percent", dir_scrape_state["percent"])
+                dir_scrape_state["last_tool"] = ev.get("last_tool", dir_scrape_state["last_tool"])
+                dir_scrape_state["status"] = ev.get("status", dir_scrape_state["status"])
+                broadcast_event({"type": "directory_progress", **dir_scrape_state})
+
+            run_universal_scraper(
+                target_url=req.url,
+                limit=limit_val,
+                max_workers=workers_val,
+                output_file=output_path,
+                progress_callback=on_dir_progress,
+                stop_check=dir_stop_event.is_set
+            )
+            dir_scrape_state["status"] = "completed"
+        except Exception as exc:
+            logging.getLogger("pipeline").error(f"Universal scrape error: {exc}", exc_info=True)
+            dir_scrape_state["status"] = "error"
+            dir_scrape_state["error"] = str(exc)
+        finally:
+            dir_scrape_state["is_running"] = False
+            broadcast_event({"type": "directory_status", **dir_scrape_state})
+
+    t = threading.Thread(target=run_worker, daemon=True)
+    t.start()
+    return {"status": "started", "message": f"Universal scraping started for {req.url}", "target_file": output_filename}
+
+
+@app.post("/api/pipeline/stop-directory")
+async def stop_directory_scrape():
+    """Stop active directory scrape cleanly."""
+    if not dir_scrape_state["is_running"]:
+        return JSONResponse(status_code=400, content={"error": "No directory scrape is running"})
+    dir_stop_event.set()
+    dir_scrape_state["status"] = "stopping"
+    return {"status": "stopping", "message": "Stop signal sent to directory scraper"}
+
+
+@app.get("/api/pipeline/download")
+async def download_file(file: str):
+    """Download an exported Excel or CSV file directly."""
+    safe_name = os.path.basename(file)
+    file_path = os.path.join("data", "export", safe_name)
+    if not os.path.exists(file_path):
+        return JSONResponse(status_code=404, content={"error": f"File '{safe_name}' not found"})
+    media_type = (
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        if safe_name.endswith(".xlsx")
+        else "text/csv"
+    )
+    return FileResponse(file_path, filename=safe_name, media_type=media_type)
+
+
 if __name__ == "__main__":
     uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=False)
+

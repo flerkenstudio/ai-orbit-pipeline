@@ -34292,7 +34292,7 @@
     "id": "173d064f-a0c2-5f99-bf91-066ac535801c",
     "entity_type": "Tool",
     "name": "CodePilot AI",
-    "description": "CodePilot is a powerful AI coding copilot for teams.",
+    "description": "Real-time code completion. Automated unit test generation",
     "url": "https://codepilot.ai/",
     "logo_url": "https://codepilot.ai/favicon.png",
     "categories": [
@@ -34312,6 +34312,115 @@
       "Automated unit test generation"
     ],
     "social_links": {},
-    "open_source": false
+    "open_source": false,
+    "slug": "",
+    "short_description": "",
+    "long_description": "",
+    "category_slug": "",
+    "primary_task": [],
+    "use_cases": [],
+    "integrations": [],
+    "compatibility": [],
+    "pricing_raw": "",
+    "has_api": false,
+    "api_docs_url": "",
+    "github_url": "",
+    "provider": "",
+    "provider_website": "",
+    "release_date": "",
+    "pros": [],
+    "cons": []
+  },
+  {
+    "id": "36b3b75b-948b-54c6-bf33-9eb4f0d1c74b",
+    "entity_type": "Tool",
+    "name": "AgentHunter",
+    "description": "AgentHunter is the ultimate directory for AI agents.",
+    "url": "https://agenthunter.io/",
+    "logo_url": "https://www.agenthunter.io/apple-touch-icon.png",
+    "categories": [
+      "Other"
+    ],
+    "aliases": [],
+    "source": {
+      "name": "Direct URL Ingestion",
+      "url": "https://agenthunter.io/"
+    },
+    "verified": true,
+    "http_status": 200,
+    "last_verified": "2026-09-21",
+    "pricing": "Open Source",
+    "features": [
+      "All Access Types",
+      "The Agent Company",
+      "What actually shipped this week in AI",
+      "Discoverthe Best AI Agents in One Place"
+    ],
+    "social_links": {},
+    "open_source": false,
+    "slug": "",
+    "short_description": "",
+    "long_description": "",
+    "category_slug": "",
+    "primary_task": [],
+    "use_cases": [],
+    "integrations": [],
+    "compatibility": [],
+    "pricing_raw": "",
+    "has_api": false,
+    "api_docs_url": "",
+    "github_url": "",
+    "provider": "",
+    "provider_website": "",
+    "release_date": "",
+    "pros": [],
+    "cons": []
+  },
+  {
+    "id": "69b8a87d-8737-57b0-961d-ae58ed883f65",
+    "entity_type": "Tool",
+    "name": "AI Agent Directory & Marketplace | Discover Top AI Tools & Agents",
+    "description": "Discover and explore the best AI agents and tools. AiAgents.Directory is your comprehensive resource for finding the perfect AI agents.",
+    "url": "https://aiagents.directory/",
+    "logo_url": "https://aiagents.directory/static/images/og-default-2.8314c5e7c8d0.png",
+    "categories": [
+      "Agent Framework"
+    ],
+    "aliases": [],
+    "source": {
+      "name": "Direct URL Ingestion",
+      "url": "https://aiagents.directory/"
+    },
+    "verified": true,
+    "http_status": 200,
+    "last_verified": "2026-09-21",
+    "pricing": "Open Source",
+    "features": [
+      "The Ultimate AI Agent Directory & Marketplace",
+      "Project Mariner",
+      "Web Browser Droids",
+      "Microsoft AutoGen"
+    ],
+    "social_links": {
+      "twitter": "https://x.com/mo_tahaaa"
+    },
+    "open_source": false,
+    "slug": "",
+    "short_description": "",
+    "long_description": "",
+    "category_slug": "",
+    "primary_task": [],
+    "use_cases": [],
+    "integrations": [],
+    "compatibility": [],
+    "pricing_raw": "",
+    "has_api": false,
+    "api_docs_url": "",
+    "github_url": "",
+    "provider": "",
+    "provider_website": "",
+    "release_date": "",
+    "pros": [],
+    "cons": []
   }
 ]

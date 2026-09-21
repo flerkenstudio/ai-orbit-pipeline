@@ -35,6 +35,23 @@ def export_entities(entities: list, path="data/entities.json"):
             "features": getattr(e, "features", []),
             "social_links": getattr(e, "social_links", {}),
             "open_source": getattr(e, "open_source", False),
+            "slug": getattr(e, "slug", ""),
+            "short_description": getattr(e, "short_description", ""),
+            "long_description": getattr(e, "long_description", ""),
+            "category_slug": getattr(e, "category_slug", ""),
+            "primary_task": getattr(e, "primary_task", []),
+            "use_cases": getattr(e, "use_cases", []),
+            "integrations": getattr(e, "integrations", []),
+            "compatibility": getattr(e, "compatibility", []),
+            "pricing_raw": getattr(e, "pricing_raw", ""),
+            "has_api": getattr(e, "has_api", False),
+            "api_docs_url": getattr(e, "api_docs_url", ""),
+            "github_url": getattr(e, "github_url", ""),
+            "provider": getattr(e, "provider", ""),
+            "provider_website": getattr(e, "provider_website", ""),
+            "release_date": getattr(e, "release_date", ""),
+            "pros": getattr(e, "pros", []),
+            "cons": getattr(e, "cons", []),
         }
         existing_by_id[e.id] = item
 
@@ -56,7 +73,11 @@ def export_sheets_csv(entities: list, path="data/export/tools_sheet.csv"):
     cols = ["ID", "Name", "Entity Type", "Description", "Official Website",
             "Official Logo", "Pricing", "Features", "Category", "Subcategory",
             "Source", "Source URL", "GitHub Repo", "Verification Status",
-            "HTTP Status", "Last Verified", "Aliases"]
+            "HTTP Status", "Last Verified", "Aliases",
+            "Slug", "Short Description", "Long Description", "Category Slug",
+            "Primary Task", "Use Cases", "Integrations", "Compatibility",
+            "Pricing Raw", "Has API", "API Docs URL", "Provider",
+            "Provider Website", "Release Date", "Pros", "Cons"]
     with open(path, "w", newline="", encoding="utf-8-sig") as f:
         w = csv.writer(f)
         w.writerow(cols)
@@ -91,6 +112,22 @@ def export_sheets_csv(entities: list, path="data/export/tools_sheet.csv"):
                 src_name, src_url,
                 gh, "Verified" if verified else "Pending", status,
                 last_ver, aliases_str,
+                e.get("slug", "") if is_dict else getattr(e, "slug", ""),
+                e.get("short_description", "") if is_dict else getattr(e, "short_description", ""),
+                e.get("long_description", "") if is_dict else getattr(e, "long_description", ""),
+                e.get("category_slug", "") if is_dict else getattr(e, "category_slug", ""),
+                " | ".join(e.get("primary_task", [])) if is_dict else " | ".join(getattr(e, "primary_task", [])),
+                " | ".join(e.get("use_cases", [])) if is_dict else " | ".join(getattr(e, "use_cases", [])),
+                " | ".join(e.get("integrations", [])) if is_dict else " | ".join(getattr(e, "integrations", [])),
+                " | ".join(e.get("compatibility", [])) if is_dict else " | ".join(getattr(e, "compatibility", [])),
+                e.get("pricing_raw", "") if is_dict else getattr(e, "pricing_raw", ""),
+                e.get("has_api", False) if is_dict else getattr(e, "has_api", False),
+                e.get("api_docs_url", "") if is_dict else getattr(e, "api_docs_url", ""),
+                e.get("provider", "") if is_dict else getattr(e, "provider", ""),
+                e.get("provider_website", "") if is_dict else getattr(e, "provider_website", ""),
+                e.get("release_date", "") if is_dict else getattr(e, "release_date", ""),
+                " | ".join(e.get("pros", [])) if is_dict else " | ".join(getattr(e, "pros", [])),
+                " | ".join(e.get("cons", [])) if is_dict else " | ".join(getattr(e, "cons", [])),
             ])
     return path
 
@@ -122,7 +159,11 @@ def export_to_google_sheets_api(entities: list):
         cols = ['ID', 'Name', 'Entity Type', 'Description', 'Official Website',
                 'Official Logo', 'Pricing', 'Features', 'Category', 'Subcategory',
                 'Source', 'Source URL', 'GitHub Repo', 'Verification Status',
-                'HTTP Status', 'Last Verified', 'Aliases']
+                'HTTP Status', 'Last Verified', 'Aliases',
+                'Slug', 'Short Description', 'Long Description', 'Category Slug',
+                'Primary Task', 'Use Cases', 'Integrations', 'Compatibility',
+                'Pricing Raw', 'Has API', 'API Docs URL', 'Provider',
+                'Provider Website', 'Release Date', 'Pros', 'Cons']
         rows = [cols]
         for e in entities:
             cats = e.categories
@@ -137,6 +178,17 @@ def export_to_google_sheets_api(entities: list):
                 e.source.get('name', ''), e.source.get('url', ''),
                 gh, 'Verified' if e.verified else 'Pending', e.http_status,
                 e.last_verified, '; '.join(sorted(e.aliases)),
+                getattr(e, 'slug', ''), getattr(e, 'short_description', ''),
+                getattr(e, 'long_description', ''), getattr(e, 'category_slug', ''),
+                ' | '.join(getattr(e, 'primary_task', [])),
+                ' | '.join(getattr(e, 'use_cases', [])),
+                ' | '.join(getattr(e, 'integrations', [])),
+                ' | '.join(getattr(e, 'compatibility', [])),
+                getattr(e, 'pricing_raw', ''), getattr(e, 'has_api', False),
+                getattr(e, 'api_docs_url', ''), getattr(e, 'provider', ''),
+                getattr(e, 'provider_website', ''), getattr(e, 'release_date', ''),
+                ' | '.join(getattr(e, 'pros', [])),
+                ' | '.join(getattr(e, 'cons', [])),
             ])
 
         worksheet.clear()

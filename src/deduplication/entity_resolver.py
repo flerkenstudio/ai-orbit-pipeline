@@ -30,6 +30,25 @@ class Entity:
     social_links: dict = field(default_factory=dict)
     open_source: bool = False
 
+    # New AIOrbit fields
+    slug: str = ""
+    short_description: str = ""
+    long_description: str = ""
+    category_slug: str = ""
+    primary_task: list = field(default_factory=list)
+    use_cases: list = field(default_factory=list)
+    integrations: list = field(default_factory=list)
+    compatibility: list = field(default_factory=list)
+    pricing_raw: str = ""
+    has_api: bool = False
+    api_docs_url: str = ""
+    github_url: str = ""
+    provider: str = ""
+    provider_website: str = ""
+    release_date: str = ""
+    pros: list = field(default_factory=list)
+    cons: list = field(default_factory=list)
+
 
 class EntityResolver:
     def __init__(self):
@@ -55,6 +74,21 @@ class EntityResolver:
         if getattr(cand, "verified", False):
             existing.verified = True
             existing.http_status = cand.http_status
+            
+        # Merge new AIOrbit fields
+        for field_name in ["slug", "short_description", "long_description", "category_slug", "pricing_raw", "api_docs_url", "github_url", "provider", "provider_website", "release_date"]:
+            if getattr(cand, field_name, "") and not getattr(existing, field_name, ""):
+                setattr(existing, field_name, getattr(cand, field_name))
+                
+        for list_field in ["primary_task", "use_cases", "integrations", "compatibility", "pros", "cons"]:
+            existing_list = getattr(existing, list_field, [])
+            cand_list = getattr(cand, list_field, [])
+            if cand_list:
+                merged = list(set(existing_list + cand_list))
+                setattr(existing, list_field, merged)
+                
+        if getattr(cand, "has_api", False):
+            existing.has_api = True
 
     def resolve(self, cand):
         cand.url = normalize_url(cand.url)
@@ -96,6 +130,23 @@ class EntityResolver:
             features=getattr(cand, "features", []),
             social_links=getattr(cand, "social_links", {}),
             open_source=getattr(cand, "open_source", False),
+            slug=getattr(cand, "slug", ""),
+            short_description=getattr(cand, "short_description", ""),
+            long_description=getattr(cand, "long_description", ""),
+            category_slug=getattr(cand, "category_slug", ""),
+            primary_task=getattr(cand, "primary_task", []),
+            use_cases=getattr(cand, "use_cases", []),
+            integrations=getattr(cand, "integrations", []),
+            compatibility=getattr(cand, "compatibility", []),
+            pricing_raw=getattr(cand, "pricing_raw", ""),
+            has_api=getattr(cand, "has_api", False),
+            api_docs_url=getattr(cand, "api_docs_url", ""),
+            github_url=getattr(cand, "github_url", ""),
+            provider=getattr(cand, "provider", ""),
+            provider_website=getattr(cand, "provider_website", ""),
+            release_date=getattr(cand, "release_date", ""),
+            pros=getattr(cand, "pros", []),
+            cons=getattr(cand, "cons", []),
         )
         if dom:
             self.by_domain[dom] = entity

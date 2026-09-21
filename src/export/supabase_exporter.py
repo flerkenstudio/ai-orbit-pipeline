@@ -54,6 +54,23 @@ def export_to_supabase(entities, relationships, report):
             "verified": e.verified,
             "http_status": e.http_status,
             "last_verified": e.last_verified or None,
+            "slug": getattr(e, "slug", ""),
+            "short_description": getattr(e, "short_description", ""),
+            "long_description": getattr(e, "long_description", ""),
+            "category_slug": getattr(e, "category_slug", ""),
+            "primary_task": getattr(e, "primary_task", []),
+            "use_cases": getattr(e, "use_cases", []),
+            "integrations": getattr(e, "integrations", []),
+            "compatibility": getattr(e, "compatibility", []),
+            "pricing_raw": getattr(e, "pricing_raw", ""),
+            "has_api": getattr(e, "has_api", False),
+            "api_docs_url": getattr(e, "api_docs_url", ""),
+            "github_url": getattr(e, "github_url", ""),
+            "provider": getattr(e, "provider", ""),
+            "provider_website": getattr(e, "provider_website", ""),
+            "release_date": getattr(e, "release_date", ""),
+            "pros": getattr(e, "pros", []),
+            "cons": getattr(e, "cons", []),
         })
 
     # Insert / Upsert in batches of 100

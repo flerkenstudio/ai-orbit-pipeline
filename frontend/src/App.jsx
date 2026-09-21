@@ -206,7 +206,7 @@ export default function App() {
         <div className="flex items-center gap-3">
           <button onClick={() => setIsScrapeModalOpen(true)}
             className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-md text-sm font-semibold shadow-sm transition-all active:scale-98 cursor-pointer">
-            <Sparkles size={14} /> Scrape URL
+            <Sparkles size={14} /> Scrape URL / Directory
           </button>
           <button onClick={() => setIsDrawerOpen(true)}
             className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-1.5 rounded-md text-sm font-semibold shadow-sm transition-all active:scale-98 cursor-pointer">
