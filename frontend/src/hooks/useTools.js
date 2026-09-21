@@ -58,5 +58,5 @@ export function useTools() {
     fetchTools();
   }, [fetchTools]);
 
-  return { tools, loading, error, refetch: fetchTools };
+  return { tools, setTools, loading, error, refetch: fetchTools };
 }

@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { AllCommunityModule, ModuleRegistry, themeAlpine } from 'ag-grid-community';
-import { Orbit, Download, Search, RefreshCw, CheckCircle2, XCircle, Globe, ExternalLink, Play } from 'lucide-react';
+import { Orbit, Download, Search, RefreshCw, CheckCircle2, XCircle, Globe, ExternalLink, Play, Sparkles } from 'lucide-react';
 import { useTools } from './hooks/useTools';
 import PipelineDrawer from './components/PipelineDrawer';
+import ScrapeUrlModal from './components/ScrapeUrlModal';
 
 // Register all AG Grid Community modules
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -103,11 +104,18 @@ const FeaturesCellRenderer = (props) => {
 
 /* ── Main App ───────────────────────────────────────────── */
 export default function App() {
-  const { tools, loading, error, refetch } = useTools();
+  const { tools, setTools, loading, error, refetch } = useTools();
   const [searchText, setSearchText] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isScrapeModalOpen, setIsScrapeModalOpen] = useState(false);
   const gridRef = useRef(null);
+
+  const handleToolScraped = useCallback((newTool) => {
+    if (setTools && newTool) {
+      setTools(prev => [newTool, ...prev.filter(t => t.id !== newTool.id)]);
+    }
+  }, [setTools]);
 
   // Stats
   const totalTools = tools.length;
@@ -196,6 +204,10 @@ export default function App() {
         </div>
 
         <div className="flex items-center gap-3">
+          <button onClick={() => setIsScrapeModalOpen(true)}
+            className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-md text-sm font-semibold shadow-sm transition-all active:scale-98 cursor-pointer">
+            <Sparkles size={14} /> Scrape URL
+          </button>
           <button onClick={() => setIsDrawerOpen(true)}
             className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-1.5 rounded-md text-sm font-semibold shadow-sm transition-all active:scale-98 cursor-pointer">
             <Play size={14} fill="currentColor" /> Run Pipeline
@@ -320,6 +332,13 @@ export default function App() {
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
         onPipelineComplete={refetch}
+      />
+
+      {/* ── Single URL Scraper Modal ─────────────────── */}
+      <ScrapeUrlModal
+        isOpen={isScrapeModalOpen}
+        onClose={() => setIsScrapeModalOpen(false)}
+        onToolScraped={handleToolScraped}
       />
     </div>
   );

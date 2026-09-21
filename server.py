@@ -8,14 +8,33 @@ import os
 import threading
 import time
 from collections import deque
-from typing import List
+from typing import List, Optional
 
 import uvicorn
 from fastapi import FastAPI, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, JSONResponse
+from pydantic import BaseModel
 
+from urllib.parse import urlparse
 from run import run_pipeline
+from src.discovery.base import Candidate
+from src.cleaning.url_normalizer import normalize_url
+from src.extraction.site_crawler import enrich_from_official_site
+from src.cleaning.text_cleaner import clean_description
+from src.deduplication.entity_resolver import EntityResolver
+from src.classification.categorizer import categorize
+from src.utils.uuid_generator import stable_uuid
+from src.validation.quality_gate import run_validation
+from src.export.exporters import export_entities, export_sheets_csv
+from src.export.supabase_exporter import export_to_supabase
+
+
+class ScrapeUrlRequest(BaseModel):
+    url: str
+    name: Optional[str] = None
+    category_hint: Optional[str] = None
+
 
 app = FastAPI(title="AI Orbit Pipeline API")
 
@@ -211,6 +230,90 @@ async def get_entities():
         except Exception as e:
             return JSONResponse(status_code=500, content={"error": str(e)})
     return []
+
+
+@app.post("/api/pipeline/scrape-url")
+async def scrape_single_url(req: ScrapeUrlRequest):
+    raw_url = (req.url or "").strip()
+    if not raw_url:
+        return JSONResponse(status_code=400, content={"error": "URL is required"})
+
+    clean_url = normalize_url(raw_url)
+    parsed = urlparse(clean_url)
+    if not clean_url or not clean_url.startswith("http") or not parsed.netloc or "." not in parsed.netloc:
+        return JSONResponse(status_code=400, content={"error": "Invalid HTTP/HTTPS URL"})
+
+    log = logging.getLogger("pipeline")
+    log.info("Single URL scrape requested: %s", clean_url)
+
+    # 1. Build initial candidate
+    cand = Candidate(
+        name=req.name.strip() if req.name else "",
+        url=clean_url,
+        description="",
+        category_hint=req.category_hint or "",
+        source_name="Direct URL Ingestion",
+        source_url=clean_url,
+    )
+
+    # 2. Enrich from website (metadata, pricing, features, logo, live probe)
+    try:
+        enrich_from_official_site(cand)
+    except Exception as exc:
+        log.warning("Enrichment error for %s: %s", clean_url, exc)
+
+    cand.description = clean_description(cand.description)
+    if len(cand.description) < 30 and getattr(cand, "features", None):
+        feat_text = ". ".join(cand.features[:2])
+        cand.description = clean_description(f"{cand.description} — {feat_text}".strip(" —"))
+    if len(cand.description) < 30:
+        cand.description = clean_description(
+            f"{cand.name or 'AI Tool'} — AI powered platform and tool for {cand.category_hint or 'automation and productivity'}."
+        )
+
+    # 3. Entity resolution & classification
+    resolver = EntityResolver()
+    entity, action = resolver.resolve(cand)
+    entity.categories = categorize(entity)
+    entity.id = stable_uuid(entity.entity_type, entity.url)
+
+    # 4. Data quality validation
+    report = run_validation([entity])
+
+    # 5. Incremental export to Supabase (exact schema, upsert on conflict)
+    try:
+        export_to_supabase([entity], [], report)
+    except Exception as err:
+        log.warning("Supabase upsert note for %s: %s", entity.name, err)
+
+    # 6. Cumulative local storage
+    try:
+        cumulative = export_entities([entity])
+        export_sheets_csv(cumulative)
+    except Exception as err:
+        log.warning("Local export warning: %s", err)
+
+    result = {
+        "id": entity.id,
+        "name": entity.name,
+        "entity_type": entity.entity_type,
+        "description": entity.description,
+        "url": entity.url,
+        "logo_url": entity.logo_url,
+        "categories": entity.categories,
+        "aliases": sorted(entity.aliases),
+        "pricing": getattr(entity, "pricing", ""),
+        "features": getattr(entity, "features", []),
+        "social_links": getattr(entity, "social_links", {}),
+        "open_source": getattr(entity, "open_source", False),
+        "verified": entity.verified,
+        "http_status": entity.http_status,
+        "last_verified": entity.last_verified,
+        "source": entity.source,
+    }
+
+    log.info("Successfully scraped & ingested single URL: %s (%s)", entity.name, entity.url)
+    return result
 
 
 if __name__ == "__main__":
