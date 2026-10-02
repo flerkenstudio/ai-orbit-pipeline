@@ -1,0 +1,79 @@
+# Expanded Static Competition & Hackathon Sources
+# Includes Tier-1 IITs, IIMs, NITs, BITS, and Major Corporate Competitions
+
+- name: techfest_iitb
+  organiser: "IIT Bombay"
+  organiser_type: college
+  url: https://techfest.org/competitions
+  engine: requests
+  selectors:
+    card: ".competition-card, .event-card"
+    title: ".competition-name, h3, h2"
+    link: "a"
+    deadline: null
+
+- name: shaastra_iitm
+  organiser: "IIT Madras"
+  organiser_type: college
+  url: https://www.shaastra.org/events
+  engine: requests
+  selectors:
+    card: ".event-card, .card"
+    title: ".event-title, h3"
+    link: "a"
+    deadline: null
+
+- name: tryst_iitd
+  organiser: "IIT Delhi"
+  organiser_type: college
+  url: https://tryst-iitd.org/events
+  engine: requests
+  selectors:
+    card: ".event-card, .card"
+    title: "h3, h2"
+    link: "a"
+    deadline: null
+
+- name: kshitij_iitkgp
+  organiser: "IIT Kharagpur"
+  organiser_type: college
+  url: https://ktj.in/events
+  engine: requests
+  selectors:
+    card: ".event-card, .card"
+    title: "h3, h4"
+    link: "a"
+    deadline: null
+
+- name: apogee_bits
+  organiser: "BITS Pilani"
+  organiser_type: college
+  url: https://bits-apogee.org/events
+  engine: requests
+  selectors:
+    card: ".event-card, .card"
+    title: "h3"
+    link: "a"
+    deadline: null
+
+- name: imagine_cup_microsoft
+  organiser: "Microsoft"
+  organiser_type: company
+  url: https://imaginecup.microsoft.com/en-US/competitions
+  engine: requests
+  selectors:
+    card: "[data-testid='competition-card'], .card"
+    title: "h3, h2"
+    link: "a"
+    deadline: null
+
+- name: google_solution_challenge
+  organiser: "Google"
+  organiser_type: company
+  url: https://developers.google.com/community/gdsc-solution-challenge
+  engine: requests
+  selectors:
+    card: ".card, section"
+    title: "h2, h3"
+    link: "a"
+    deadline: null

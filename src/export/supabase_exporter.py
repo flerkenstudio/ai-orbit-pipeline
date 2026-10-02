@@ -34,8 +34,12 @@ def export_to_supabase(entities, relationships, report):
         "validation_failed": report.get("failed", 0),
         "report": report,
     }
-    run_result = client.table("pipeline_runs").insert(run_data).execute()
-    run_id = run_result.data[0]["id"] if run_result.data else None
+    try:
+        run_result = client.table("pipeline_runs").insert(run_data).execute()
+        run_id = run_result.data[0]["id"] if run_result.data else None
+    except Exception as exc:
+        log.error("Failed to connect to Supabase or create pipeline run: %s", exc)
+        return None
 
     # 2. Incrementally upsert entities (retains existing records, updates re-scraped ones)
     rows = []

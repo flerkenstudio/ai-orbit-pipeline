@@ -17,4 +17,6 @@ frontend/dist/
 frontend/.env
 data/export/*.csv
 data/export/*.xlsx
+*.db
+*.xlsx
 scratch_*.py

@@ -35,11 +35,17 @@ class ScrapeUrlRequest(BaseModel):
     name: Optional[str] = None
     category_hint: Optional[str] = None
 
-
 class DirectoryScrapeRequest(BaseModel):
     url: str = "https://www.example.com/"
     limit: Optional[int] = 100
     workers: Optional[int] = 25
+
+
+class CompetitionRunRequest(BaseModel):
+    demo: bool = False
+    no_linkcheck: bool = True
+    only: Optional[str] = None
+
 
 
 
@@ -88,6 +94,18 @@ dir_scrape_state = {
     "error": None,
 }
 dir_stop_event = threading.Event()
+
+competitions_state = {
+    "is_running": False,
+    "last_run": None,
+    "total": 0,
+    "live": 0,
+    "summary": None,
+    "status": "idle",
+    "error": None,
+}
+competitions_stop_event = threading.Event()
+
 
 
 recent_logs = deque(maxlen=250)
@@ -416,6 +434,99 @@ async def stop_directory_scrape():
     return {"status": "stopping", "message": "Stop signal sent to directory scraper"}
 
 
+@app.get("/api/competitions")
+async def get_competitions():
+    """Return all stored competition opportunities from SQLite database."""
+    try:
+        from internatlas.competitions.schema import init_db
+        from internatlas.competitions.processing.dedupe import fetch_all
+        conn = init_db()
+        records = fetch_all(conn)
+        conn.close()
+        return records
+    except Exception as e:
+        logging.getLogger("pipeline").warning(f"Error reading competitions DB: {e}")
+        return []
+
+
+@app.get("/api/competitions/status")
+async def get_competitions_status():
+    """Return status of competition scraping operation."""
+    return competitions_state
+
+
+@app.post("/api/competitions/run")
+async def trigger_competitions_run(req: CompetitionRunRequest):
+    """Trigger InternAtlas competitions scraping pipeline (Unstop, Devfolio, static hackathons)."""
+    if competitions_state["is_running"]:
+        return JSONResponse(status_code=409, content={"error": "Competitions pipeline is already running"})
+
+    competitions_state["is_running"] = True
+    competitions_state["status"] = "running"
+    competitions_state["error"] = None
+
+    def run_worker():
+        from internatlas.competitions.pipeline import run_competitions_pipeline
+        from internatlas.competitions.main import demo_data
+        from internatlas.competitions.schema import init_db
+        from internatlas.competitions.processing.dedupe import fetch_all
+
+        try:
+            broadcast_event({"type": "competitions_start", "message": "Competitions pipeline started"})
+            raw = demo_data() if req.demo else None
+            excel_path = run_competitions_pipeline(
+                verbose=True,
+                linkcheck=not req.no_linkcheck,
+                only=req.only,
+                raw_override=raw
+            )
+            conn = init_db()
+            all_records = fetch_all(conn)
+            conn.close()
+
+            competitions_state["total"] = len(all_records)
+            competitions_state["live"] = len([r for r in all_records if r.get("status") == "live"])
+            competitions_state["last_run"] = time.strftime("%Y-%m-%d %H:%M:%S")
+            competitions_state["status"] = "completed"
+            competitions_state["summary"] = {
+                "excel_path": str(excel_path),
+                "excel_file": os.path.basename(str(excel_path)),
+                "total": len(all_records),
+                "live": len([r for r in all_records if r.get("status") == "live"])
+            }
+            broadcast_event({"type": "competitions_complete", **competitions_state})
+        except Exception as exc:
+            logging.getLogger("pipeline").error(f"Competitions pipeline error: {exc}", exc_info=True)
+            competitions_state["status"] = "error"
+            competitions_state["error"] = str(exc)
+            broadcast_event({"type": "competitions_error", "error": str(exc)})
+        finally:
+            competitions_state["is_running"] = False
+
+    t = threading.Thread(target=run_worker, daemon=True)
+    t.start()
+    return {"status": "started", "message": "Competitions pipeline started in background"}
+
+
+@app.get("/api/competitions/download")
+async def download_competitions_excel():
+    """Download latest exported competitions Excel file."""
+    try:
+        from internatlas.competitions import config as comp_config
+        export_dir = comp_config.EXPORT_DIR
+        files = sorted(list(export_dir.glob("*.xlsx")), key=lambda f: f.stat().st_mtime, reverse=True)
+        if not files:
+            return JSONResponse(status_code=404, content={"error": "No competition Excel files found. Run the pipeline first."})
+        latest_file = files[0]
+        return FileResponse(
+            latest_file,
+            filename=latest_file.name,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
 @app.get("/api/pipeline/download")
 async def download_file(file: str):
     """Download an exported Excel or CSV file directly."""
@@ -433,4 +544,6 @@ async def download_file(file: str):
 
 if __name__ == "__main__":
     uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=False)
+
+
 

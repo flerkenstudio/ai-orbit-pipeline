@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { AllCommunityModule, ModuleRegistry, themeAlpine } from 'ag-grid-community';
-import { Orbit, Download, Search, RefreshCw, CheckCircle2, XCircle, Globe, ExternalLink, Play, Sparkles } from 'lucide-react';
+import { Orbit, Download, Search, RefreshCw, CheckCircle2, XCircle, Globe, ExternalLink, Play, Sparkles, Trophy, Layers } from 'lucide-react';
 import { useTools } from './hooks/useTools';
 import PipelineDrawer from './components/PipelineDrawer';
 import ScrapeUrlModal from './components/ScrapeUrlModal';
+import CompetitionsView from './components/CompetitionsView';
 
 // Register all AG Grid Community modules
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -109,6 +110,7 @@ export default function App() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isScrapeModalOpen, setIsScrapeModalOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState('tools'); // 'tools' | 'competitions'
   const gridRef = useRef(null);
 
   const handleToolScraped = useCallback((newTool) => {
@@ -192,134 +194,171 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       {/* ── Header ──────────────────────────────────── */}
-      <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between sticky top-0 z-10 shadow-sm">
+      <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between sticky top-0 z-10 shadow-2xs">
         <div className="flex items-center gap-3">
-          <div className="bg-blue-600 p-2 rounded-lg text-white shadow-sm">
+          <div className="bg-blue-600 p-2 rounded-lg text-white shadow-2xs">
             <Orbit size={22} />
           </div>
           <div>
             <h1 className="text-lg font-bold text-gray-900 tracking-tight leading-tight">AI Orbit Pipeline</h1>
             <p className="text-[11px] text-gray-500 font-medium">Data Collection &amp; Verification Dashboard</p>
           </div>
+
+          {/* Section Switcher Tabs */}
+          <div className="ml-6 flex items-center gap-1 p-1 bg-gray-100 rounded-xl">
+            <button
+              onClick={() => setActiveSection('tools')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                activeSection === 'tools'
+                  ? 'bg-white text-blue-700 shadow-2xs'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <Layers size={14} />
+              <span>AI Tools Catalog</span>
+            </button>
+            <button
+              onClick={() => setActiveSection('competitions')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                activeSection === 'competitions'
+                  ? 'bg-white text-indigo-700 shadow-2xs'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <Trophy size={14} className="text-amber-500" />
+              <span>Competitions &amp; Hackathons (InternAtlas)</span>
+            </button>
+          </div>
         </div>
 
         <div className="flex items-center gap-3">
-          <button onClick={() => setIsScrapeModalOpen(true)}
-            className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-md text-sm font-semibold shadow-sm transition-all active:scale-98 cursor-pointer">
-            <Sparkles size={14} /> Scrape URL / Directory
-          </button>
-          <button onClick={() => setIsDrawerOpen(true)}
-            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-1.5 rounded-md text-sm font-semibold shadow-sm transition-all active:scale-98 cursor-pointer">
-            <Play size={14} fill="currentColor" /> Run Pipeline
-          </button>
-          <button onClick={refetch} disabled={loading}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
-            <RefreshCw size={15} className={loading ? 'animate-spin text-blue-600' : ''} />
-            {loading ? 'Syncing…' : 'Sync'}
-          </button>
-          <button onClick={onBtnExport}
-            className="flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-md text-sm font-medium shadow-sm transition-colors">
-            <Download size={14} /> Export CSV
-          </button>
+          {activeSection === 'tools' && (
+            <>
+              <button onClick={() => setIsScrapeModalOpen(true)}
+                className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-md text-sm font-semibold shadow-2xs transition-all active:scale-98 cursor-pointer">
+                <Sparkles size={14} /> Scrape URL / Directory
+              </button>
+              <button onClick={() => setIsDrawerOpen(true)}
+                className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-1.5 rounded-md text-sm font-semibold shadow-2xs transition-all active:scale-98 cursor-pointer">
+                <Play size={14} fill="currentColor" /> Run Pipeline
+              </button>
+              <button onClick={refetch} disabled={loading}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors cursor-pointer">
+                <RefreshCw size={15} className={loading ? 'animate-spin text-blue-600' : ''} />
+                {loading ? 'Syncing…' : 'Sync'}
+              </button>
+              <button onClick={onBtnExport}
+                className="flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-md text-sm font-medium shadow-2xs transition-colors cursor-pointer">
+                <Download size={14} /> Export CSV
+              </button>
+            </>
+          )}
         </div>
       </header>
 
-      {/* ── Stats Bar ───────────────────────────────── */}
-      <div className="bg-white px-6 py-3 border-b border-gray-200 flex items-center gap-8 text-sm flex-wrap">
-        <div className="flex flex-col">
-          <span className="text-gray-500 text-xs font-medium">Total Tools</span>
-          <span className="text-xl font-bold text-gray-900">{totalTools.toLocaleString()}</span>
+      {/* ── Main Section View Switcher ───────────────── */}
+      {activeSection === 'competitions' ? (
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <CompetitionsView />
         </div>
-        <div className="h-8 w-px bg-gray-200"></div>
-        <div className="flex flex-col">
-          <span className="text-gray-500 text-xs font-medium">50K Target Progress</span>
-          <div className="flex items-center gap-2">
-            <span className="text-xl font-bold text-indigo-600">
-              {((totalTools / 50000) * 100).toFixed(1)}%
-            </span>
-            <span className="text-xs text-gray-400 font-medium">({totalTools.toLocaleString()} / 50K)</span>
-          </div>
-        </div>
-        <div className="h-8 w-px bg-gray-200"></div>
-        <div className="flex flex-col">
-          <span className="text-gray-500 text-xs font-medium">Verified</span>
-          <span className="text-xl font-bold text-green-600">{verifiedCount.toLocaleString()}</span>
-        </div>
-        <div className="h-8 w-px bg-gray-200"></div>
-        <div className="flex flex-col">
-          <span className="text-gray-500 text-xs font-medium">Pending</span>
-          <span className="text-xl font-bold text-yellow-600">{pendingCount.toLocaleString()}</span>
-        </div>
-        <div className="h-8 w-px bg-gray-200"></div>
-        <div className="flex flex-col">
-          <span className="text-gray-500 text-xs font-medium">Categories</span>
-          <span className="text-xl font-bold text-blue-600">{Math.max(0, allCategories.length - 1)}</span>
-        </div>
-      </div>
-
-      {/* ── Controls Row ────────────────────────────── */}
-      <div className="px-4 pt-3">
-        <div className="flex items-center justify-between bg-white p-2.5 rounded-lg border border-gray-200 shadow-sm">
-          {/* Category pills */}
-          <div className="flex-1 overflow-x-auto no-scrollbar flex items-center gap-1.5 px-1">
-            {allCategories.map(cat => (
-              <button key={cat} onClick={() => setSelectedCategory(cat)}
-                className={`whitespace-nowrap px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors border ${
-                  selectedCategory === cat
-                    ? 'bg-blue-100 text-blue-700 border-blue-200'
-                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border-transparent'
-                }`}>
-                {cat}
-              </button>
-            ))}
-          </div>
-
-          {/* Search */}
-          <div className="relative ml-3 min-w-[220px]">
-            <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-              <Search size={14} className="text-gray-400" />
+      ) : (
+        <>
+          {/* ── Stats Bar ───────────────────────────────── */}
+          <div className="bg-white px-6 py-3 border-b border-gray-200 flex items-center gap-8 text-sm flex-wrap">
+            <div className="flex flex-col">
+              <span className="text-gray-500 text-xs font-medium">Total Tools</span>
+              <span className="text-xl font-bold text-gray-900">{totalTools.toLocaleString()}</span>
             </div>
-            <input type="text"
-              className="block w-full pl-8 pr-3 py-1.5 border border-gray-300 rounded-md text-sm bg-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Quick search…"
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-            />
+            <div className="h-8 w-px bg-gray-200"></div>
+            <div className="flex flex-col">
+              <span className="text-gray-500 text-xs font-medium">50K Target Progress</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xl font-bold text-indigo-600">
+                  {((totalTools / 50000) * 100).toFixed(1)}%
+                </span>
+                <span className="text-xs text-gray-400 font-medium">({totalTools.toLocaleString()} / 50K)</span>
+              </div>
+            </div>
+            <div className="h-8 w-px bg-gray-200"></div>
+            <div className="flex flex-col">
+              <span className="text-gray-500 text-xs font-medium">Verified</span>
+              <span className="text-xl font-bold text-green-600">{verifiedCount.toLocaleString()}</span>
+            </div>
+            <div className="h-8 w-px bg-gray-200"></div>
+            <div className="flex flex-col">
+              <span className="text-gray-500 text-xs font-medium">Pending</span>
+              <span className="text-xl font-bold text-yellow-600">{pendingCount.toLocaleString()}</span>
+            </div>
+            <div className="h-8 w-px bg-gray-200"></div>
+            <div className="flex flex-col">
+              <span className="text-gray-500 text-xs font-medium">Categories</span>
+              <span className="text-xl font-bold text-blue-600">{Math.max(0, allCategories.length - 1)}</span>
+            </div>
           </div>
-        </div>
-      </div>
 
-      {/* ── Error banner ────────────────────────────── */}
-      {error && (
-        <div className="mx-4 mt-3 bg-red-50 border-l-4 border-red-500 p-3 rounded-md flex items-center gap-2">
-          <XCircle className="h-4 w-4 text-red-400 flex-shrink-0" />
-          <p className="text-sm text-red-700">Error loading data: {error}</p>
-        </div>
+          {/* ── Controls Row ────────────────────────────── */}
+          <div className="px-4 pt-3">
+            <div className="flex items-center justify-between bg-white p-2.5 rounded-lg border border-gray-200 shadow-2xs">
+              <div className="flex-1 overflow-x-auto no-scrollbar flex items-center gap-1.5 px-1">
+                {allCategories.map(cat => (
+                  <button key={cat} onClick={() => setSelectedCategory(cat)}
+                    className={`whitespace-nowrap px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors border cursor-pointer ${
+                      selectedCategory === cat
+                        ? 'bg-blue-100 text-blue-700 border-blue-200'
+                        : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border-transparent'
+                    }`}>
+                    {cat}
+                  </button>
+                ))}
+              </div>
+
+              <div className="relative ml-3 min-w-[220px]">
+                <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
+                  <Search size={14} className="text-gray-400" />
+                </div>
+                <input type="text"
+                  className="block w-full pl-8 pr-3 py-1.5 border border-gray-300 rounded-md text-sm bg-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Quick search…"
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* ── Error banner ────────────────────────────── */}
+          {error && (
+            <div className="mx-4 mt-3 bg-red-50 border-l-4 border-red-500 p-3 rounded-md flex items-center gap-2">
+              <XCircle className="h-4 w-4 text-red-400 flex-shrink-0" />
+              <p className="text-sm text-red-700">Error loading data: {error}</p>
+            </div>
+          )}
+
+          {/* ── AG Grid ─────────────────────────────────── */}
+          <main className="flex-1 px-4 py-3 overflow-hidden flex flex-col" style={{ minHeight: 0 }}>
+            <div className="flex-1 bg-white rounded-lg border border-gray-200 shadow-2xs overflow-hidden" style={{ height: 'calc(100vh - 270px)' }}>
+              <AgGridReact
+                ref={gridRef}
+                theme={googleSheetsTheme}
+                rowData={tools}
+                columnDefs={columnDefs}
+                defaultColDef={defaultColDef}
+                rowHeight={32}
+                headerHeight={36}
+                pagination={true}
+                paginationPageSize={50}
+                paginationPageSizeSelector={[25, 50, 100, 200]}
+                rowSelection="multiple"
+                quickFilterText={searchText}
+                isExternalFilterPresent={isExternalFilterPresent}
+                doesExternalFilterPass={doesExternalFilterPass}
+                tooltipShowDelay={400}
+                loading={loading}
+              />
+            </div>
+          </main>
+        </>
       )}
-
-      {/* ── AG Grid ─────────────────────────────────── */}
-      <main className="flex-1 px-4 py-3 overflow-hidden flex flex-col" style={{ minHeight: 0 }}>
-        <div className="flex-1 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden" style={{ height: 'calc(100vh - 270px)' }}>
-          <AgGridReact
-            ref={gridRef}
-            theme={googleSheetsTheme}
-            rowData={tools}
-            columnDefs={columnDefs}
-            defaultColDef={defaultColDef}
-            rowHeight={32}
-            headerHeight={36}
-            pagination={true}
-            paginationPageSize={50}
-            paginationPageSizeSelector={[25, 50, 100, 200]}
-            rowSelection="multiple"
-            quickFilterText={searchText}
-            isExternalFilterPresent={isExternalFilterPresent}
-            doesExternalFilterPass={doesExternalFilterPass}
-            tooltipShowDelay={400}
-            loading={loading}
-          />
-        </div>
-      </main>
 
       {/* ── Footer ──────────────────────────────────── */}
       <footer className="bg-white border-t border-gray-200 px-6 py-1.5 text-[11px] text-gray-400 flex justify-between">
