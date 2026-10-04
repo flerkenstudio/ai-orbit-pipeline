@@ -1,9 +1,10 @@
-"""Normalize raw scraped dicts into standardized records with Priority Scoring."""
+"""Normalize raw scraped dicts into standardized records with Priority Scoring and Real Official URL Resolution."""
 import re
 from datetime import datetime
 
 from ..schema import make_record
 from ..config import PREMIUM_ORGANISERS, PREMIUM_MIN_PRIZE
+from .url_resolver import resolve_official_url
 
 CATEGORY_KEYWORDS = {
     "hackathon": ["hackathon", "hack", "devfest", "buildathon", "hackfest"],
@@ -108,11 +109,11 @@ def calculate_priority_score(rec: dict) -> int:
     elif any(k in prize_text for k in ["ppo", "internship", "cash", "certificate", "trophy", "voucher", "grant", "reward"]):
         score += 10
 
-    # 3. Active Registration Page & Direct Link (Up to 20 pts)
+    # 3. Active Official Website Link (Up to 20 pts)
     if url.startswith("https://") or url.startswith("http://"):
         score += 15
-        if not ("example.com" in url or "placeholder" in url):
-            score += 5
+        if not any(d in url.lower() for d in ["unstop.com", "devfolio.co", "hackerearth.com", "example.com"]):
+            score += 5  # Bonus for actual organiser official domain!
 
     # 4. Clear Eligibility & Registration Deadline (Up to 20 pts)
     deadline = rec.get("reg_deadline")
@@ -139,12 +140,12 @@ def is_premium(rec: dict) -> bool:
 
 
 def clean(raw: dict):
-    """Returns a standardized record, or None if required fields missing."""
+    """Returns a standardized record with resolved official organiser URL, or None if required fields missing."""
     if not isinstance(raw, dict):
         return None
     title = (raw.get("title") or "").strip()
-    url = (raw.get("official_url") or "").strip()
-    if not title or not url:
+    raw_url = (raw.get("official_url") or raw.get("discovery_url") or "").strip()
+    if not title or not raw_url:
         return None
         
     prize_text = (raw.get("prize_pool") or "").strip()
@@ -159,6 +160,9 @@ def clean(raw: dict):
     elig = raw.get("eligibility")
     elig_str = str(elig)[:300] if elig else None
 
+    # Resolve actual official organiser website URL
+    resolved_url = resolve_official_url(raw)
+
     rec = make_record(
         title=title,
         organiser=(raw.get("organiser") or "").strip(),
@@ -170,8 +174,8 @@ def clean(raw: dict):
         event_date=parse_date(raw.get("event_date")),
         prize_pool=prize_text,
         prize_value=prize_value,
-        official_url=url,
-        discovery_url=raw.get("discovery_url", ""),
+        official_url=resolved_url,
+        discovery_url=raw_url,
         source=raw.get("source", ""),
     )
     

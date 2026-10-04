@@ -18,7 +18,8 @@ import {
   Layers,
   Loader2,
   DollarSign,
-  Star
+  Star,
+  Globe
 } from 'lucide-react';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -43,24 +44,40 @@ const competitionsTheme = themeAlpine.withParams({
 
 const TitleCellRenderer = (props) => {
   if (!props.value) return null;
-  const link = props.data?.official_url;
+  const officialUrl = props.data?.official_url;
+  const discoveryUrl = props.data?.discovery_url;
   return (
     <div className="flex items-center justify-between gap-1.5 h-full w-full">
       <span className="font-semibold text-gray-900 text-xs truncate" title={props.value}>
         {props.value}
       </span>
-      {link && (
-        <a
-          href={link}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded border border-indigo-200 text-[10px] font-bold shrink-0 transition-colors"
-          title="Open official registration page"
-        >
-          <span>Apply</span>
-          <ExternalLink size={10} />
-        </a>
-      )}
+      <div className="flex items-center gap-1 shrink-0">
+        {officialUrl && (
+          <a
+            href={officialUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200 text-[10px] font-bold transition-colors"
+            title={`Open official website (${officialUrl})`}
+          >
+            <Globe size={10} />
+            <span>Official Site</span>
+            <ExternalLink size={9} />
+          </a>
+        )}
+        {discoveryUrl && (
+          <a
+            href={discoveryUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded border border-indigo-200 text-[10px] font-medium transition-colors"
+            title="Open opportunity listing"
+          >
+            <span>Listing</span>
+            <ExternalLink size={9} />
+          </a>
+        )}
+      </div>
     </div>
   );
 };
@@ -196,7 +213,7 @@ export default function CompetitionsView() {
   // Run scraper pipeline
   const handleRunPipeline = async (demoMode = false) => {
     setPipelineRunning(true);
-    setPipelineMsg(demoMode ? 'Running demo competitions pipeline...' : 'Scraping Unstop, Devfolio, HackerEarth & Tier-1 Sources...');
+    setPipelineMsg(demoMode ? 'Running demo competitions pipeline...' : 'Scraping & Resolving Official College/Company Websites...');
     try {
       const resp = await fetch('http://localhost:8000/api/competitions/run', {
         method: 'POST',
@@ -253,10 +270,10 @@ export default function CompetitionsView() {
       sort: 'desc',
     },
     {
-      headerName: 'Competition Title',
+      headerName: 'Competition Title & Official Links',
       field: 'title',
-      flex: 2,
-      minWidth: 240,
+      flex: 2.2,
+      minWidth: 280,
       cellRenderer: TitleCellRenderer,
       filter: 'agTextColumnFilter',
     },
@@ -346,7 +363,7 @@ export default function CompetitionsView() {
             className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold shadow-2xs transition-all active:scale-95 cursor-pointer disabled:opacity-50"
           >
             {pipelineRunning ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} fill="currentColor" />}
-            <span>Scrape Live (Unstop / Devfolio / HackerEarth)</span>
+            <span>Scrape Live (Official College/Company Sites)</span>
           </button>
 
           <button

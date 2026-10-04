@@ -69,9 +69,11 @@ class UnstopScraper(BaseScraper):
                         org = item.get("organisation") or {}
                         org_name = ""
                         org_tier = None
+                        email_domain = None
                         if isinstance(org, dict):
                             org_name = org.get("name", "")
                             org_tier = org.get("tier")
+                            email_domain = org.get("official_email_domains")
                         elif isinstance(org, str):
                             org_name = org
 
@@ -109,6 +111,7 @@ class UnstopScraper(BaseScraper):
                             "title": (item.get("title") or "").strip(),
                             "organiser": org_name.strip(),
                             "organiser_tier": org_tier,
+                            "official_email_domains": email_domain,
                             "official_url": official_url,
                             "reg_deadline": reg_deadline,
                             "event_date": event_date,

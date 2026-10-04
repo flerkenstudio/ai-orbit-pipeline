@@ -10,7 +10,7 @@ from .. import config
 
 COLUMNS = ["priority_score", "premium", "title", "organiser", "category", "mode", "eligibility",
            "location", "reg_deadline", "event_date", "prize_pool", "reg_fee",
-           "official_url", "source", "status", "last_verified"]
+           "official_url", "discovery_url", "source", "status", "last_verified"]
 
 SOON_FILL = PatternFill(start_color="FFF3CD", end_color="FFF3CD", fill_type="solid")
 HEADER_FONT = Font(bold=True)

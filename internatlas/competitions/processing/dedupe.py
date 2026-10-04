@@ -6,12 +6,13 @@ from ..schema import FIELDS
 
 
 def dedupe_key(rec: dict) -> str:
-    url = (rec.get("official_url") or "").lower().strip()
-    if url.startswith("http"):
-        return f"url||{url}"
+    discovery = (rec.get("discovery_url") or "").lower().strip()
+    if discovery.startswith("http"):
+        return f"disc||{discovery}"
     deadline = rec.get("reg_deadline") or ""
     org = (rec.get("organiser") or "unknown").lower().strip()
-    return f"{org}||{rec['title'].lower().strip()}||{deadline}"
+    title = (rec.get("title") or "").lower().strip()
+    return f"{org}||{title}||{deadline}"
 
 
 def upsert_records(conn: sqlite3.Connection, records: list) -> dict:
@@ -29,20 +30,19 @@ def upsert_records(conn: sqlite3.Connection, records: list) -> dict:
             continue
         seen_keys.add(key)
         existing = cur.execute(
-            "SELECT id FROM competitions WHERE dedupe_key = ? OR official_url = ?", (key, rec.get("official_url"))
+            "SELECT id FROM competitions WHERE dedupe_key = ?", (key,)
         ).fetchone()
         if existing:
             cur.execute(
                 "UPDATE competitions SET last_verified = ?, status = 'live', "
-                "priority_score = ?, premium = ?, prize_pool = ?, prize_value = ?, reg_deadline = ? "
+                "official_url = ?, discovery_url = ?, priority_score = ?, premium = ?, prize_pool = ?, prize_value = ?, reg_deadline = ? "
                 "WHERE id = ?",
-                (now, rec.get("priority_score", 0), rec.get("premium", 0), rec.get("prize_pool"), rec.get("prize_value"), rec.get("reg_deadline"), existing[0]),
+                (now, rec.get("official_url"), rec.get("discovery_url"), rec.get("priority_score", 0), rec.get("premium", 0), rec.get("prize_pool"), rec.get("prize_value"), rec.get("reg_deadline"), existing[0]),
             )
             counts["updated"] += 1
         else:
             cols = ["dedupe_key"] + [f for f in FIELDS if f != "id"]
             vals = [rec.get(f) for f in FIELDS if f != "id"]
-            # Set dedupe_key in vals
             cols_str = "dedupe_key, " + ",".join([f for f in FIELDS if f != "id"])
             vals_all = [key] + vals
             cur.execute(
