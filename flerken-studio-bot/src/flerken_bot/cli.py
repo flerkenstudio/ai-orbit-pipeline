@@ -112,26 +112,60 @@ def run(
     return markdown_path
 
 
-def create_substack_draft(markdown_path: Path, publication_url: str) -> int:
+def _find_substack_cmd() -> list[str]:
+    import shutil
+
+    exe = shutil.which("substack")
+    if exe:
+        return [exe]
+    py_dir = Path(sys.executable).resolve().parent
+    for candidate in (py_dir / "substack.exe", py_dir / "substack"):
+        if candidate.exists():
+            return [str(candidate)]
+    try:
+        import substack  # noqa: F401
+        return [sys.executable, "-m", "substack.cli"]
+    except ImportError:
+        raise RuntimeError("Substack CLI not installed. Run: pip install python-substack")
+
+
+def create_substack_draft(markdown_path: Path, publication_url: str, cookies_string: str | None = None) -> int:
     """Use python-substack CLI; draft creation only. Never publish or send."""
     import subprocess
-    import shutil
+    try:
+        from dotenv import load_dotenv
+        load_dotenv(ROOT / ".env", override=True)
+        load_dotenv(ROOT.parent / ".env", override=False)
+    except ImportError:
+        pass
 
     env = os.environ.copy()
     env["PUBLICATION_URL"] = publication_url
-    # python-substack supports COOKIES_STRING / COOKIES_PATH or EMAIL/PASSWORD.
+    if cookies_string and cookies_string.strip():
+        env["COOKIES_STRING"] = cookies_string.strip()
+
+    has_auth = bool(
+        env.get("COOKIES_STRING")
+        or env.get("COOKIES_PATH")
+        or (env.get("EMAIL") and env.get("PASSWORD"))
+    )
+    if not has_auth:
+        raise RuntimeError(
+            "AUTH_REQUIRED: Substack session cookie (COOKIES_STRING) is not configured yet. "
+            "Paste your Substack cookie in the Substack Auth modal, or paste the copied Markdown directly into your opened Substack editor."
+        )
+
     title = markdown_path.read_text(encoding="utf-8").splitlines()[0].lstrip("# ").strip()
-    executable = shutil.which("substack")
-    if not executable:
-        raise RuntimeError("Substack CLI not installed. Install project extras with: pip install -e .[publish]")
-    command = [executable, "--json", "--publication-url", publication_url, "drafts", "create", str(markdown_path), "--title", title]
+    base_cmd = _find_substack_cmd()
+    command = [*base_cmd, "--json", "--publication-url", publication_url, "drafts", "create", str(markdown_path), "--title", title]
     LOG.info("Creating unpublished Substack draft for %s", publication_url)
     result = subprocess.run(command, env=env, check=False, text=True, capture_output=True)
     if result.stdout:
         LOG.info("Substack CLI response: %s", result.stdout.strip()[:1000])
     if result.returncode != 0:
-        LOG.error("Substack draft creation failed: %s", result.stderr.strip()[:1000])
-        raise RuntimeError("Substack draft creation failed; inspect logs and authentication configuration")
+        err_detail = (result.stderr or result.stdout or "").strip()[:500]
+        LOG.error("Substack draft creation failed: %s", err_detail)
+        raise RuntimeError(f"Substack API error: {err_detail or 'Check your Substack COOKIES_STRING session cookie.'}")
     return result.returncode
 
 

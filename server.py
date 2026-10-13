@@ -924,11 +924,27 @@ async def reset_flerken_seen():
         return JSONResponse(status_code=500, content={"error": str(exc)})
 
 
+class FlerkenDraftRequest(BaseModel):
+    cookies_string: Optional[str] = None
+
+
 @app.post("/api/flerken-bot/create-draft")
-async def create_flerken_substack_draft():
+async def create_flerken_substack_draft(req: Optional[FlerkenDraftRequest] = None):
     """Create an unpublished Substack draft from the latest generated Markdown issue."""
     try:
         from flerken_bot.cli import create_substack_draft, load_config
+
+        cookies_str = req.cookies_string.strip() if (req and req.cookies_string) else None
+        if cookies_str:
+            env_file = FLERKEN_BOT_ROOT / ".env"
+            lines = []
+            if env_file.exists():
+                lines = [
+                    ln for ln in env_file.read_text(encoding="utf-8").splitlines()
+                    if not ln.startswith("COOKIES_STRING=")
+                ]
+            lines.append(f'COOKIES_STRING="{cookies_str}"')
+            env_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
         md_files = sorted(
             [f for f in FLERKEN_OUTPUT_DIR.glob("*.md") if f.name != "latest_issue.md"],
@@ -944,10 +960,17 @@ async def create_flerken_substack_draft():
             "PUBLICATION_URL",
             str(cfg.get("publication", {}).get("url", "https://flerkenstudio.substack.com/")),
         )
-        create_substack_draft(target, pub_url)
+        create_substack_draft(target, pub_url, cookies_string=cookies_str)
         return {"status": "ok", "message": f"Created unpublished Substack draft for {pub_url} from {target.name}"}
     except Exception as exc:
-        return JSONResponse(status_code=400, content={"error": str(exc)})
+        err_msg = str(exc)
+        return JSONResponse(
+            status_code=400,
+            content={
+                "error": err_msg,
+                "auth_required": "AUTH_REQUIRED" in err_msg,
+            },
+        )
 
 
 @app.get("/api/flerken-bot/download/{fmt}")

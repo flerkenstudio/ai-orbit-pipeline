@@ -1,8 +1,8 @@
-requests==2.31.0
+requests>=2.32.0
 beautifulsoup4==4.12.3
 lxml==4.9.3
 rapidfuzz==3.6.1
-python-dotenv==1.0.0
+python-dotenv>=1.0.0
 tenacity==8.2.3
 supabase>=2.0.0
 pytest==8.2.0
@@ -12,3 +12,5 @@ python-docx>=1.1.0
 pandas>=2.0.0
 openpyxl>=3.1.0
 pyyaml>=6.0
+python-substack>=0.10.0
+

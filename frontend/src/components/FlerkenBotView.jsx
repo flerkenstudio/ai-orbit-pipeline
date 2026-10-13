@@ -111,13 +111,32 @@ export default function FlerkenBotView() {
     }
   };
 
-  const handleCreateSubstackDraft = async () => {
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [cookieInput, setCookieInput] = useState('');
+
+  const handleCreateSubstackDraft = async (customCookie = null) => {
     setDraftFeedback({ type: 'info', text: 'Creating unpublished draft on Substack...' });
     try {
-      const res = await fetch('/api/flerken-bot/create-draft', { method: 'POST' });
+      const res = await fetch('/api/flerken-bot/create-draft', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cookies_string: typeof customCookie === 'string' ? customCookie : null,
+        }),
+      });
       const json = await res.json();
       if (res.ok) {
+        setShowAuthModal(false);
+        setCookieInput('');
         setDraftFeedback({ type: 'success', text: json.message || 'Unpublished Substack draft created!' });
+      } else if (json.auth_required) {
+        if (data.latest_markdown) {
+          navigator.clipboard.writeText(data.latest_markdown);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 3000);
+        }
+        setDraftFeedback(null);
+        setShowAuthModal(true);
       } else {
         setDraftFeedback({
           type: 'error',
@@ -800,6 +819,68 @@ export default function FlerkenBotView() {
           </div>
         )}
       </div>
+
+      {/* ── Substack Draft & Cookie Setup Modal ─────────── */}
+      {showAuthModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-gray-200 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-gray-900">Create Substack Draft</h3>
+              <button
+                onClick={() => setShowAuthModal(false)}
+                className="text-gray-400 hover:text-gray-700 text-sm font-bold cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 text-xs text-emerald-900">
+              <p className="font-bold mb-1">✅ Option 1 (Instant — No Cookie Needed):</p>
+              <p className="mb-2.5">
+                The entire newsletter issue Markdown has already been <strong>copied to your clipboard</strong>! Click below to open your Substack editor and press <kbd className="px-1.5 py-0.5 bg-white border rounded font-mono">Ctrl+V</kbd>.
+              </p>
+              <a
+                href="https://flerkenstudio.substack.com/publish/post"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setShowAuthModal(false)}
+                className="inline-flex items-center gap-1.5 bg-orange-600 hover:bg-orange-700 text-white font-bold px-4 py-2 rounded-lg shadow-2xs"
+              >
+                Open Substack Editor &amp; Paste <ExternalLink size={13} />
+              </a>
+            </div>
+
+            <div className="border-t border-gray-200 pt-3.5 space-y-2.5 text-xs">
+              <p className="font-bold text-gray-800">🔐 Option 2 (Automated API Draft via python-substack):</p>
+              <p className="text-gray-500">
+                Paste your Substack session cookie (<code className="bg-gray-100 px-1 rounded">substack.sid=...</code> or <code className="bg-gray-100 px-1 rounded">connect.sid=...</code>). It will be saved only to your local <code className="bg-gray-100 px-1 rounded">flerken-studio-bot/.env</code> (gitignored).
+              </p>
+              <input
+                type="password"
+                placeholder="substack.sid=s%3A..."
+                value={cookieInput}
+                onChange={(e) => setCookieInput(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 font-mono text-xs"
+              />
+              <div className="flex justify-end gap-2 pt-1">
+                <button
+                  onClick={() => setShowAuthModal(false)}
+                  className="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 font-semibold cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleCreateSubstackDraft(cookieInput)}
+                  disabled={!cookieInput.trim()}
+                  className="px-4 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white font-bold cursor-pointer"
+                >
+                  Save Cookie &amp; Create Draft
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
