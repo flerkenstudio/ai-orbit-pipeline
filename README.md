@@ -32,6 +32,7 @@
   - [3. CLI Execution Commands](#3-cli-execution-commands)
 - [Running Automated Tests](#running-automated-tests)
 - [Support & Donations](#support--donations)
+- [Acknowledgements & Credits](#acknowledgements--credits)
 - [License](#license)
 
 ---
@@ -327,6 +328,25 @@ If you find this project helpful, please consider supporting its development:
 </p>
 
 - **Buy Me a Coffee**: [buymeacoffee.com/flerken](https://buymeacoffee.com/flerken)
+
+---
+
+## Acknowledgements & Credits
+
+We gratefully acknowledge the following open-source projects, authors, and maintainers that power different parts of this platform:
+
+| Project | Author / Maintainer | GitHub Repository | Role in Pipeline |
+|---|---|---|---|
+| **python-substack** | [@ma2za](https://github.com/ma2za) (Paolo Mazza) | [ma2za/python-substack](https://github.com/ma2za/python-substack) | Substack API client & draft automation for Flerken Studio Bot. |
+| **AG Grid Community** | [@ag-grid](https://github.com/ag-grid) | [ag-grid/ag-grid](https://github.com/ag-grid/ag-grid) | High-performance Google-Sheets-style data table in dashboard. |
+| **FastAPI** | [@tiangolo](https://github.com/tiangolo) (Sebastián Ramírez) | [tiangolo/fastapi](https://github.com/tiangolo/fastapi) | Async REST API & Server-Sent Events (SSE) telemetry server. |
+| **python-docx** | [@python-openxml](https://github.com/python-openxml) (Steve Canny) | [python-openxml/python-docx](https://github.com/python-openxml/python-docx) | Microsoft Word (`.docx`) document exporter with styled hyperlinks. |
+| **RapidFuzz** | [@maxbachmann](https://github.com/maxbachmann) (Max Bachmann) | [rapidfuzz/RapidFuzz](https://github.com/rapidfuzz/RapidFuzz) | Fast C++ based fuzzy token-sort entity deduplication. |
+| **Supabase Python** | [@supabase-community](https://github.com/supabase-community) | [supabase-community/supabase-py](https://github.com/supabase-community/supabase-py) | Cloud PostgreSQL client & entity upsert engine. |
+| **Lucide Icons** | [@lucide-icons](https://github.com/lucide-icons) | [lucide-icons/lucide](https://github.com/lucide-icons/lucide) | Modern iconography across dashboard tabs and components. |
+| **Beautiful Soup 4** | Leonard Richardson | [wention/BeautifulSoup4](https://code.launchpad.net/beautifulsoup) | HTML DOM parsing, cleaning, and metadata extraction. |
+| **Vite** | [@vitejs](https://github.com/vitejs) (Evan You & team) | [vitejs/vite](https://github.com/vitejs/vite) | Next-generation frontend build tooling and dev server. |
+| **Tailwind CSS** | [@tailwindlabs](https://github.com/tailwindlabs) | [tailwindlabs/tailwindcss](https://github.com/tailwindlabs/tailwindcss) | Utility-first styling for the interactive web dashboard. |
 
 ---
 
