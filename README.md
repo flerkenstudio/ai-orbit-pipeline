@@ -10,7 +10,7 @@
   <img src="https://img.shields.io/badge/FastAPI-0.110+-009688.svg?style=for-the-badge&logo=fastapi" alt="FastAPI" />
   <img src="https://img.shields.io/badge/React-19-61DAFB.svg?style=for-the-badge&logo=react" alt="React" />
   <img src="https://img.shields.io/badge/Vite-8.3-646CFF.svg?style=for-the-badge&logo=vite" alt="Vite" />
-  <img src="https://img.shields.io/badge/Substack-InternAtlas-FF6719.svg?style=for-the-badge&logo=substack" alt="Substack" />
+  <img src="https://img.shields.io/badge/Substack-FF6719.svg?style=for-the-badge&logo=substack" alt="Substack" />
   <img src="https://img.shields.io/badge/Supabase-Supported-3ECF8E.svg?style=for-the-badge&logo=supabase" alt="Supabase" />
 </p>
 
