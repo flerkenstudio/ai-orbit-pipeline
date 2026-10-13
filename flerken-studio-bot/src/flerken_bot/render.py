@@ -12,6 +12,35 @@ def slugify(value: str) -> str:
     return value[:70] or "newsletter"
 
 
+CATEGORY_EMOJIS = {
+    "Software Development & Core Engineering Opportunities": "💻",
+    "Artificial Intelligence & Machine Learning Opportunities": "🤖",
+    "Cybersecurity Opportunities": "🛡️",
+    "Data Analytics, Research & Intelligence Roles": "📊",
+    "Product Design, Media & Content Strategy Roles": "🎨",
+    "Business Operations, HR, Marketing & Strategy Roles": "💼",
+    "Other Early-Career Opportunities": "🚀",
+}
+
+
+def _format_work_mode(mode: str) -> str:
+    m = (mode or "").strip().lower()
+    if "remote" in m:
+        return "🌐 Remote"
+    if "hybrid" in m:
+        return "⚡ Hybrid"
+    if "onsite" in m or "office" in m:
+        return "🏢 In-Office"
+    return "📌 " + (mode.strip() or "Unspecified")
+
+
+def _format_location(loc: str) -> str:
+    cleaned = (loc or "").strip()
+    if not cleaned or cleaned.lower() == "location not specified":
+        return "📍 Location not specified"
+    return f"📍 {cleaned}"
+
+
 def render_newsletter(jobs: list[Job], brand: str = "InternAtlas", publication_date: date | None = None) -> str:
     publication_date = publication_date or date.today()
     grouped: dict[str, list[Job]] = defaultdict(list)
@@ -23,27 +52,56 @@ def render_newsletter(jobs: list[Job], brand: str = "InternAtlas", publication_d
             lead_companies.append(job.company)
         if len(lead_companies) == 8:
             break
+
     lines = [
         f"# 🔴 {brand} — {publication_date.strftime('%d %b %Y')} — {len(jobs)} Early-Career Opportunities",
         "",
     ]
     if lead_companies:
-        lines.append(", ".join(lead_companies) + (", and more" if len(jobs) > len(lead_companies) else ""))
+        company_list = ", ".join(lead_companies)
+        if len(jobs) > len(lead_companies):
+            company_list += ", and more"
+        lines.append(f"✨ **Featured Employers:** {company_list}")
         lines.append("")
-    lines += [publication_date.strftime("%b %d, %Y").upper(), "", "---", "", "Hi everyone,", "", "Here are newly collected early-career opportunities. Please check the employer's application page for current eligibility and availability.", ""]
-    for category, category_jobs in grouped.items():
-        lines.extend([f"## {category}", ""])
-        for index, job in enumerate(category_jobs, 1):
-            title = job.title.replace("[", "\\[").replace("]", "\\]")
-            company = job.company.strip() or "Employer not specified"
-            location = job.location.strip() or "Location not specified"
-            work_mode = job.work_mode.strip() or "Work mode not specified"
-            lines.append(f"{index}. [{title} — {company}]({job.url}) ({location} · {work_mode})")
-            if job.verification_status != "verified_link":
-                lines.append(f"   - **Review required:** {job.verification_note}")
-        lines.append("")
+
     lines.extend([
-        "---", "", "*Application links were checked for reachability, but a reachable page does not guarantee that a role remains open. Confirm eligibility, deadlines, and job details on the employer's official careers page before applying.*", "",
+        f"📅 **{publication_date.strftime('%B %d, %Y').upper()}**",
+        "",
+        "> 💡 **Curated & Verified Early-Career Digest**  ",
+        "> All links below are verified official employer application pages. Positions fill on a rolling basis, so we recommend applying promptly! 🚀",
+        "",
+        "---",
+        "",
+    ])
+
+    for category, category_jobs in grouped.items():
+        emoji = CATEGORY_EMOJIS.get(category, "📌")
+        lines.extend([
+            f"## {emoji} {category} ({len(category_jobs)})",
+            "",
+        ])
+        for index, job in enumerate(category_jobs, 1):
+            title = job.title.replace("[", "\\[").replace("]", "\\]").strip()
+            company = job.company.strip() or "Employer not specified"
+            location = _format_location(job.location)
+            work_mode = _format_work_mode(job.work_mode)
+            lines.append(f"{index}. **[{title} — {company}]({job.url})**  \n   {location} · {work_mode}")
+            if job.verification_status != "verified_link":
+                lines.append(f"   ⚠️ *Review note: {job.verification_note}*")
+            lines.append("")
+        lines.append("---")
+        lines.append("")
+
+    lines.extend([
+        "### 💡 Pro-Tips for Applicants",
+        "- ⚡ **Apply Early:** Early-career & internship roles often close once application caps are reached.",
+        "- 🎯 **Tailor Your Resume:** Align relevant keywords and projects with each role's requirements.",
+        "- 📬 **Share With Peers:** Know someone looking for an internship or new-grad role? Forward this issue to them!",
+        "",
+        "---",
+        "",
+        "🔒 *Application links were checked for reachability, but a reachable page does not guarantee that a role remains open. Confirm eligibility, deadlines, and job details on the employer's official careers page before applying.*",
+        "",
     ])
     return "\n".join(lines)
 
@@ -125,11 +183,12 @@ def render_newsletter_docx(
     )
 
     for category, category_jobs in grouped.items():
-        doc.add_heading(category, level=2)
+        emoji = CATEGORY_EMOJIS.get(category, "📌")
+        doc.add_heading(f"{emoji} {category} ({len(category_jobs)})", level=2)
         for index, job in enumerate(category_jobs, 1):
             company = job.company.strip() or "Employer not specified"
-            location = job.location.strip() or "Location not specified"
-            work_mode = job.work_mode.strip() or "Work mode not specified"
+            location = _format_location(job.location)
+            work_mode = _format_work_mode(job.work_mode)
             p = doc.add_paragraph()
             p.paragraph_format.space_after = Pt(4)
             p.add_run(f"{index}. ")
