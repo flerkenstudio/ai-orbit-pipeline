@@ -1,7 +1,7 @@
-# AI Orbit Data Ingestion Pipeline & Web Dashboard
+# AI Orbit Pipeline & InternAtlas Suite (Flerken Studio)
 
 <p align="center">
-  <strong>API-first, modular ingestion engine and real-time dashboard for discovering, scraping, classifying, and deduplicating AI tools across the web.</strong>
+  <strong>Unified multi-pipeline data ingestion engine, ATS scraper, official link verifier, and interactive React dashboard powering AI Orbit &amp; InternAtlas (Flerken Studio).</strong>
 </p>
 
 <p align="center">
@@ -10,86 +10,153 @@
   <img src="https://img.shields.io/badge/FastAPI-0.110+-009688.svg?style=for-the-badge&logo=fastapi" alt="FastAPI" />
   <img src="https://img.shields.io/badge/React-19-61DAFB.svg?style=for-the-badge&logo=react" alt="React" />
   <img src="https://img.shields.io/badge/Vite-8.3-646CFF.svg?style=for-the-badge&logo=vite" alt="Vite" />
+  <img src="https://img.shields.io/badge/Substack-InternAtlas-FF6719.svg?style=for-the-badge&logo=substack" alt="Substack" />
   <img src="https://img.shields.io/badge/Supabase-Supported-3ECF8E.svg?style=for-the-badge&logo=supabase" alt="Supabase" />
 </p>
 
 ---
 
 ## Table of Contents
-- [Architecture Overview](#architecture-overview)
-- [Key Features](#key-features)
-- [Entity Resolution & Deduplication](#entity-resolution--deduplication)
+- [Platform Overview (4 Integrated Modules)](#platform-overview-4-integrated-modules)
+- [System Architecture](#system-architecture)
+- [Module 1: AI Tools Catalog (`src/`)](#module-1-ai-tools-catalog-src)
+- [Module 2: Competitions & Hackathons with Official URL Resolver (`internatlas/competitions/`)](#module-2-competitions--hackathons-with-official-url-resolver-internatlascompetitions)
+- [Module 3: Substack Internships — Word (.docx) & Multi-ATS Scraper (`internatlas/substack/`)](#module-3-substack-internships--word-docx--multi-ats-scraper-internatlassubstack)
+- [Module 4: Flerken Studio Bot (`flerken-studio-bot/`)](#module-4-flerken-studio-bot-flerken-studio-bot)
 - [Live Interactive Web Dashboard](#live-interactive-web-dashboard)
+- [REST API Reference](#rest-api-reference)
+- [Project Directory Structure](#project-directory-structure)
 - [Quick Start Guide](#quick-start-guide)
   - [1. Prerequisites & Environment](#1-prerequisites--environment)
-  - [2. CLI Pipeline Run](#2-cli-pipeline-run)
-  - [3. Full Web Application (Backend + Frontend)](#3-full-web-application-backend--frontend)
-- [Pipeline Stages](#pipeline-stages)
-- [Data Storage & Output Formats](#data-storage--output-formats)
+  - [2. Full Web Application (Backend + Frontend)](#2-full-web-application-backend--frontend)
+  - [3. CLI Execution Commands](#3-cli-execution-commands)
 - [Running Automated Tests](#running-automated-tests)
 - [Support & Donations](#support--donations)
 - [License](#license)
 
 ---
 
-## Architecture Overview
+## Platform Overview (4 Integrated Modules)
 
-The pipeline operates as a staged, decoupled ingestion pipeline with error isolation at every step:
+This repository combines **four specialized data collection, verification, and publishing pipelines** into a single FastAPI backend (`server.py`) and a unified 4-tab React 19 dashboard (`frontend/`):
 
-```
-┌─────────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-│  Discovery  │ ──> │  Extraction  │ ──> │   Cleaning   │ ──> │ Resolution & │
-│ (GH, HF, HN,│     │  (Parallel   │     │ (HTML sanit, │     │ Deduplication│
-│Seed, Awesome│     │ 25+ Workers) │     │ URLs, text)  │     │(Domain+Fuzzy)│
-└─────────────┘     └──────────────┘     └──────────────┘     └──────────────┘
-                                                                      │
-                                                                      ▼
-┌─────────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-│  Incremental│ <── │  Validation  │ <── │Relationship  │ <── │Classification│
-│   Export    │     │ Quality Gate │     │   Graph      │     │  (Taxonomy   │
-│(Supabase/CSV│     │ (Pass / Fail)│     │  Builder     │     │  Categories) │
-└─────────────┘     └──────────────┘     └──────────────┘     └──────────────┘
-```
-
-Each stage lives in its own package under `src/`, allowing any component to be extended or swapped without affecting the others.
+| Dashboard Tab | Package / Directory | Primary Purpose | Output Formats |
+|---|---|---|---|
+| **1. AI Tools Catalog** | `src/` | Discovers, scrapes, classifies, and deduplicates AI tools toward a 50,000-tool catalog. | `.csv`, `.xlsx`, `.json`, Supabase |
+| **2. Competitions & Hackathons** | `internatlas/competitions/` | Scrapes national & global hackathons/competitions and resolves **official college/company website URLs** (replacing Unstop/Devfolio aggregator links). | `.xlsx`, SQLite (`competitions.db`) |
+| **3. Substack Internships (Word / Docx)** | `internatlas/substack/` | Scrapes **98 official ATS boards** (Greenhouse, Lever, Ashby, SmartRecruiters, Workday) and generates ready-to-publish **Word (`.docx`)** documents with clickable links. | `.docx`, `.xlsx`, `.md`, SQLite (`substack_jobs.db`) |
+| **4. Flerken Studio Bot** | `flerken-studio-bot/` | Automated Substack newsletter bot for `flerkenstudio.substack.com` with live HTTP link verification, SQLite `SeenStore` ledger, Review Queue safety gate, and unpublished Substack draft creation. | `.md`, `.docx`, `verified_jobs.json`, `review_queue.json`, SQLite (`seen.sqlite3`) |
 
 ---
 
-## Key Features
+## System Architecture
 
-- **Multi-Source Discovery Engine**: Ingests thousands of candidates across GitHub Search API, Hugging Face Hub Spaces API, Hacker News Algolia API, Curated Awesome-AI markdown registries, and high-signal seed sources.
-- **Incremental Accumulation (50K Target)**: Seamlessly accumulates toward the **50,000 AI Tools** milestone across repeated batch runs using Supabase table upserts and cumulative JSON/CSV merges without wiping historic data.
-- **High-Concurrency Parallel Scraping**: Concurrent `ThreadPoolExecutor` worker pool scrapes, probes, and enriches 20+ candidate websites simultaneously for 10x faster execution.
+```
+┌───────────────────────────────────────────────────────────────────────────────────┐
+│                        React 19 + Vite + AG Grid Dashboard                        │
+│  [1. AI Tools Catalog] [2. Competitions] [3. Substack Word/Docx] [4. Flerken Bot] │
+└───────────────┬──────────────────┬─────────────────────┬──────────────────┬───────┘
+                │                  │                     │                  │
+                ▼                  ▼                     ▼                  ▼
+┌───────────────────────────────────────────────────────────────────────────────────┐
+│                          FastAPI Backend Server (server.py)                       │
+│   /api/tools, /api/pipeline   /api/competitions     /api/substack   /api/flerken-bot│
+└───────────────┬──────────────────┬─────────────────────┬──────────────────┬───────┘
+                │                  │                     │                  │
+                ▼                  ▼                     ▼                  ▼
+        ┌───────────────┐  ┌───────────────┐     ┌───────────────┐  ┌───────────────┐
+        │ AI Orbit Core │  │ Competitions  │     │ Multi-ATS 98  │  │ Flerken Bot   │
+        │  9-Stage ETL  │  │ + Official URL│     │ Board Scraper │  │ Link Verifier │
+        │   Pipeline    │  │   Resolver    │     │ + Word .DOCX  │  │ + Seen Ledger │
+        └───────────────┘  └───────────────┘     └───────────────┘  └───────────────┘
+```
+
+---
+
+## Module 1: AI Tools Catalog (`src/`)
+
+- **Multi-Source Discovery Engine**: Ingests candidates across GitHub Search API, Hugging Face Hub Spaces API, Hacker News Algolia API, Curated Awesome-AI markdown registries, and seed directories.
+- **Incremental Accumulation (50K Target)**: Accumulates toward the **50,000 AI Tools** milestone across repeated batch runs using Supabase table upserts and cumulative JSON/CSV merges without wiping historic data.
+- **High-Concurrency Parallel Scraping**: Concurrent `ThreadPoolExecutor` worker pool probes and enriches 20+ candidate websites simultaneously.
 - **Deep Feature & Pricing Extraction**:
-  - **Pricing Model**: Classifies tools as `Freemium`, `Open Source`, `Free`, or `Paid` via heuristic DOM and copy analysis.
-  - **Key Features**: Extracts core value propositions, pitch statements, and capabilities from `<h1>`, `<h2>`, and structured lists.
-  - **Social Links**: Captures official GitHub repos, Discord communities, Twitter/X profiles, and documentation links.
-  - **Resilient Logos**: Priority search (`apple-touch-icon`, `og:image`, SVG) with high-res Google Favicon service fallback.
-- **Anti-Bot Resilient Crawler**: Uses modern browser request headers and polite exponential backoff to handle bot-protected domains (Cloudflare, etc.).
-- **Deterministic IDs**: Generates stable UUIDv5 IDs derived from `entity_type + canonical URL`, keeping IDs persistent across re-runs.
-- **Quality Gate Validation**: Enforces mandatory name, description length, HTTPS validation, logo presence, and category assignment (100% pass rate).
+  - **Pricing Model**: Classifies tools as `Freemium`, `Open Source`, `Free`, or `Paid`.
+  - **Key Features & Social Links**: Extracts core value propositions, official GitHub repos, Discord communities, Twitter/X profiles, and documentation links.
+  - **Resilient Logos**: Priority search (`apple-touch-icon`, `og:image`, SVG) with high-res Google Favicon fallback.
+- **Entity Resolution & Deduplication**:
+  - **Domain-First Identity**: Canonical registrable domain serves as primary identity.
+  - **Fuzzy Name Matching**: RapidFuzz (token-sort ratio $\ge 92$) catches near-duplicates and merges metadata.
 
 ---
 
-## Entity Resolution & Deduplication
+## Module 2: Competitions & Hackathons with Official URL Resolver (`internatlas/competitions/`)
 
-1. **Domain-First Identity**: The canonical registrable domain (e.g. `openai.com`) serves as primary identity for deduplication.
-2. **Fuzzy Name Matching**: RapidFuzz (token-sort ratio $\ge 92$) catches near-duplicates across different subdomains or naming aliases and merges metadata.
-3. **Cross-Domain Safety**: Flags potential conflicts into a review queue to prevent improper merges.
+Scrapes live student hackathons, case competitions, fellowships, and engineering challenges while ensuring **every listing links directly to the official college, IIT/NIT/IIM, or corporate organizer website** rather than aggregator URLs.
+
+- **Official Website URL Resolution (`internatlas/competitions/url_resolver.py`)**:
+  - Automatically detects aggregator domains (`unstop.com`, `dare2compete.com`, `devfolio.co`, `devpost.com`, `hackerearth.com`, `mlh.io`).
+  - Resolves over **140+ known universities, IITs, NITs, IIITs, IIMs, and tech companies** directly to their official `.ac.in`, `.edu.in`, `.edu`, or corporate domains.
+  - Falls back to live DuckDuckGo HTML search resolution when an unknown college or company organizer is encountered, and repairs any existing aggregator rows in SQLite on startup (`repair_existing_db_urls`).
+- **Structured Classification**: Categorizes each opportunity by `Domain`, `Category`, `Format / Mode`, `Eligibility`, `Prize Pool`, `Deadline`, and `Official Registration Link`.
+
+---
+
+## Module 3: Substack Internships — Word (.docx) & Multi-ATS Scraper (`internatlas/substack/`)
+
+Designed specifically for **InternAtlas Substack issues**, this module scrapes live early-career roles across **98 company ATS boards** and exports a formatted **Microsoft Word (`.docx`)** document matching the exact InternAtlas newsletter layout.
+
+- **5 Official ATS Integrations (`internatlas/substack/scrapers.py`)**:
+  1. **Greenhouse API** (`boards-api.greenhouse.io`)
+  2. **Lever Postings API** (`api.lever.co`)
+  3. **Ashby HQ GraphQL API** (`jobs.ashbyhq.com`)
+  4. **SmartRecruiters Postings API** (`api.smartrecruiters.com`)
+  5. **Workday CXS JSON API** (`myworkdayjobs.com`)
+- **6 Curated InternAtlas Categories (`internatlas/substack/processor.py`)**:
+  1. *Software Development & Core Engineering Opportunities*
+  2. *Artificial Intelligence & Machine Learning Opportunities*
+  3. *Cybersecurity Opportunities*
+  4. *Data Analytics, Research & Intelligence Roles*
+  5. *Product Design, Media & Content Strategy Roles*
+  6. *Business Operations, HR, Marketing & Strategy Roles*
+- **Formatted Word (`.docx`) Export (`internatlas/substack/exporter.py`)**:
+  - Generates the exact header (`🔴 InternAtlas — {Date} — {N} Verified Internships`), company subtitle list, intro greeting, numbered category items with **clickable blue hyperlinks** (`Title — Company (Location · Work Mode)`), and closing disclaimer.
+
+---
+
+## Module 4: Flerken Studio Bot (`flerken-studio-bot/`)
+
+An automated newsletter issue generator and link-verification bot built for **`https://flerkenstudio.substack.com/`**.
+
+### How Flerken Studio Bot Works
+1. **Configurable Source Collection (`src/flerken_bot/sources.py` & `config/sources.yaml`)**:
+   - Collects live openings concurrently from enabled **Greenhouse** boards, **Lever** sites, and **RSS/Atom** feeds configured in `flerken-studio-bot/config/sources.yaml`.
+   - Manage sources directly from the **Sources & Config** sub-tab in the web UI (toggle boards on/off, add new Greenhouse/Lever/RSS feeds, or remove entries).
+2. **Target Location & Early-Career Filtering (`src/flerken_bot/quality.py`)**:
+   - Filters for **India** (`Bengaluru`, `Hyderabad`, `Pune`, `Mumbai`, `Delhi/NCR`, `Chennai`, etc.) and **Remote/Global** early-career, internship, graduate, apprentice, trainee, and analyst roles.
+3. **Live HTTP Link Verification & Safety Gate (`src/flerken_bot/quality.py`)**:
+   - Concurrently verifies every candidate URL via HTTP (`verify_jobs_concurrent`).
+   - **Verified Official Links (`verified_link`)**: Confirmed employer URLs (`HTTP < 400`) enter the newsletter issue and `output/verified_jobs.json`.
+   - **Review Queue Safety Gate (`needs_review` / `rejected`)**: Aggregator-only links without an explicit official employer URL or unreachable links (`HTTP >= 400`) are **never published as verified links**; they are isolated in `output/review_queue.json` and displayed in the **Review Queue** tab.
+4. **Cross-Issue SQLite Deduplication (`state/seen.sqlite3`)**:
+   - `SeenStore` records SHA-256 hashes of drafted job URLs so subsequent runs only include newly discovered roles (with a 1-click **Reset** or **Ignore Seen Ledger** option in the UI).
+5. **Safe Substack Draft Workflow (`src/flerken_bot/cli.py`)**:
+   - Generates both **Substack Markdown (`.md`)** and **Microsoft Word (`.docx`)** files in `flerken-studio-bot/output/`.
+   - **Does NOT auto-publish to subscribers**: Clicking **Substack Draft** (or setting `CREATE_SUBSTACK_DRAFT=true`) uses `python-substack` CLI strictly to create an **unpublished draft** in your Substack dashboard for human review.
+   - Includes `.github/workflows/newsletter.yml` for scheduled alternate-day execution (`30 3 * * *` / 9:00 AM IST).
 
 ---
 
 ## Live Interactive Web Dashboard
 
-The web dashboard provides a complete control center and spreadsheet view for the dataset:
+The React 19 dashboard (`http://localhost:5173`) provides a unified control center across all four modules:
 
-- **Google-Sheets-Style Interface**: Powered by AG Grid Community with column filtering, sorting, multiple selections, and instant CSV export.
-- **Centered Modal Pipeline Runner**: Click **"Run Pipeline"** in the top navigation to open a clean modal dialog.
-- **Real-Time SSE Streaming**: Live progress bar, stage indicator, and real-time counter (`144 / 390 tools processed`).
-- **Currently Enriching Card**: Live preview showing the tool currently being scraped with its logo, detected pricing, and HTTP status.
-- **Live Terminal Window**: Embedded console streaming formatted `pipeline.log` output with color-coded levels (`INFO`, `WARNING`, `ERROR`, `SUCCESS`).
-- **Stop / Cancel Control**: Red **"Stop Pipeline"** button cleanly halts crawling at any time without corrupting database state.
-- **Auto-Sync**: Automatically refreshes the table grid upon pipeline completion.
+- **Tab 1 — AI Tools Catalog**: AG Grid spreadsheet with category pills, search filter, Single-URL Scraper modal, and live SSE Pipeline Runner modal.
+- **Tab 2 — Competitions & Hackathons (InternAtlas)**: Live scraper trigger, domain/mode filters, direct verified college/company website links, and `.xlsx` export.
+- **Tab 3 — Substack Internships (Word / Docx)**: Live 98-board ATS scraper progress bar, formatted Substack document preview, 1-click **Download Word (`.docx`)**, **Download Excel (`.xlsx`)**, and **Copy Markdown**.
+- **Tab 4 — Flerken Studio Bot**:
+  - **Latest Newsletter Issue (`.md`)**: Copy Markdown, download `.MD Issue`, download `Word (.docx)`, or trigger `Substack Draft`.
+  - **Verified Official Jobs**: Searchable table of HTTP-verified roles (`verified_link`) with direct employer links.
+  - **Review Queue (`review_queue.json`)**: Inspects blocked aggregator or broken links with their `verification_note`.
+  - **Sources & Config (`config/sources.yaml`)**: Add, delete, or toggle Greenhouse, Lever, and RSS sources live from the browser.
 
 <p align="center">
   <img src="docs/screenshots/dashboard.png" alt="AI Orbit Dashboard" width="95%" />
@@ -101,6 +168,70 @@ The web dashboard provides a complete control center and spreadsheet view for th
 
 ---
 
+## REST API Reference
+
+| Endpoint | Method | Module | Description |
+|---|---|---|---|
+| `/api/tools` | `GET` | AI Tools | Returns all deduplicated AI tools with categories, pricing, and features. |
+| `/api/pipeline/run` | `POST` | AI Tools | Starts the 9-stage AI tools ingestion pipeline in background. |
+| `/api/pipeline/stream` | `GET` | Global SSE | Server-Sent Events stream for real-time progress across pipelines. |
+| `/api/competitions` | `GET` | Competitions | Lists all hackathons & competitions with resolved official organizer URLs. |
+| `/api/competitions/run` | `POST` | Competitions | Runs multi-source competition scraping + official URL resolution. |
+| `/api/competitions/download` | `GET` | Competitions | Downloads latest formatted Competitions `.xlsx` workbook. |
+| `/api/substack/jobs` | `GET` | Substack Docx | Returns all categorized ATS internships and formatted Markdown preview. |
+| `/api/substack/run` | `POST` | Substack Docx | Scrapes 98 ATS boards and generates `.docx` and `.xlsx` exports. |
+| `/api/substack/download-docx` | `GET` | Substack Docx | Downloads the latest formatted Microsoft Word (`.docx`) newsletter file. |
+| `/api/substack/download-xlsx` | `GET` | Substack Docx | Downloads the latest Substack Internships `.xlsx` spreadsheet. |
+| `/api/flerken-bot/state` | `GET` | Flerken Bot | Returns bot status, `sources.yaml`, `SeenStore` count, latest `.md`, verified jobs, and review queue. |
+| `/api/flerken-bot/run` | `POST` | Flerken Bot | Runs Flerken Studio Bot collection, concurrent HTTP verification, and `.md`/`.docx` generation. |
+| `/api/flerken-bot/sources` | `POST` | Flerken Bot | Toggles, adds, or removes Greenhouse, Lever, or RSS sources in `config/sources.yaml`. |
+| `/api/flerken-bot/reset-seen` | `POST` | Flerken Bot | Clears `flerken-studio-bot/state/seen.sqlite3` ledger. |
+| `/api/flerken-bot/create-draft`| `POST` | Flerken Bot | Creates an unpublished draft on `flerkenstudio.substack.com` via `python-substack`. |
+| `/api/flerken-bot/download/{fmt}`| `GET` | Flerken Bot | Downloads latest Flerken Studio Bot output (`md`, `docx`, or `review`). |
+
+---
+
+## Project Directory Structure
+
+```text
+ai-orbit-pipeline/
+├── src/                          # Module 1: AI Tools 9-stage ingestion pipeline
+│   ├── discovery/                # GitHub, HuggingFace, HackerNews, Awesome-AI, Seed
+│   ├── extraction/               # Parallel scraper, pricing, features, logos
+│   ├── cleaning/                 # HTML sanitizer, URL canonicalizer
+│   ├── normalization/            # Entity name cleaner & deterministic UUIDv5
+│   ├── deduplication/            # Domain-first + RapidFuzz entity resolution
+│   ├── classification/           # Taxonomy category mapper
+│   ├── relationships/            # Knowledge graph edge builder
+│   ├── validation/               # Quality gate validator
+│   └── export/                   # CSV, JSON, Excel, and Supabase exporters
+├── internatlas/
+│   ├── competitions/             # Module 2: Competitions & Hackathons + Official URL Resolver
+│   │   ├── url_resolver.py       # Resolves aggregator links to official college/company websites
+│   │   ├── scrapers.py           # Unstop, Devpost, MLH, Kaggle, HackerEarth, Curated scrapers
+│   │   ├── processor.py          # Deduplication, classification & quality scoring
+│   │   └── exporter.py           # Styled Excel (.xlsx) exporter
+│   └── substack/                 # Module 3: Substack Internships (98 ATS Boards -> Word .docx)
+│       ├── companies.yaml        # 98 curated Greenhouse, Lever, Ashby, SmartRecruiters, Workday boards
+│       ├── scrapers.py           # Concurrent multi-ATS JSON/GraphQL adapters
+│       ├── processor.py          # Early-career filter, India/Remote filter, 6-category mapper
+│       └── exporter.py           # python-docx Word (.docx) generator with clickable hyperlinks
+├── flerken-studio-bot/           # Module 4: Flerken Studio Bot (Substack Newsletter Bot)
+│   ├── config/sources.yaml       # Configurable Greenhouse, Lever & RSS sources
+│   ├── src/flerken_bot/          # Bot package (cli.py, sources.py, quality.py, render.py, models.py)
+│   ├── tests/test_quality.py     # Unit tests for verification, deduplication, SeenStore & rendering
+│   └── .github/workflows/        # Alternate-day GitHub Actions workflow (newsletter.yml)
+├── frontend/                     # React 19 + Vite + Tailwind + AG Grid Web Dashboard
+│   └── src/
+│       ├── App.jsx               # Main 4-tab application shell
+│       └── components/           # CompetitionsView.jsx, SubstackView.jsx, FlerkenBotView.jsx, etc.
+├── server.py                     # Unified FastAPI server powering all 4 modules
+├── run.py                        # CLI runner for AI Tools pipeline
+└── requirements.txt              # Python dependencies
+```
+
+---
+
 ## Quick Start Guide
 
 ### 1. Prerequisites & Environment
@@ -108,7 +239,7 @@ The web dashboard provides a complete control center and spreadsheet view for th
 - **Python 3.10+**
 - **Node.js 18+** & **npm**
 
-Clone the repository and set up environment variables:
+Clone the repository and configure environment variables:
 
 ```bash
 git clone https://github.com/flerkenstudio/ai-orbit-pipeline.git
@@ -118,50 +249,24 @@ cd ai-orbit-pipeline
 cp .env.example .env
 ```
 
-Edit `.env` with your credentials (optional but recommended):
-```env
-# Optional: raises GitHub API rate limits from 60 to 5,000 req/hr
-GITHUB_TOKEN=ghp_your_github_token_here
-
-# Supabase (optional: for remote database synchronization)
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=your-anon-key-here
-```
-
----
-
-### 2. CLI Pipeline Run
-
-To execute the data ingestion pipeline directly in your terminal:
+Set up the Python virtual environment and install dependencies:
 
 ```bash
-# Set up Python virtual environment
 python -m venv venv
-source venv/bin/activate       # On Windows: venv\Scripts\activate
-
-# Install dependencies
+source venv/bin/activate       # On Windows: .\venv\Scripts\activate
 pip install -r requirements.txt
-
-# Run ingestion pipeline
-python run.py
 ```
-
-<p align="center">
-  <img src="docs/screenshots/terminal_run.png" alt="CLI Ingestion Pipeline Execution" width="95%" />
-</p>
 
 ---
 
-### 3. Full Web Application (Backend + Frontend)
-
-To launch the full interactive web application:
+### 2. Full Web Application (Backend + Frontend)
 
 #### Terminal 1 — Start FastAPI Server (Port 8000)
 ```bash
 # Activate virtual environment
-source venv/bin/activate       # On Windows: venv\Scripts\activate
+source venv/bin/activate       # On Windows: .\venv\Scripts\activate
 
-# Run FastAPI streaming server
+# Run FastAPI server
 python server.py
 ```
 
@@ -172,54 +277,42 @@ npm install
 npm run dev
 ```
 
-Open **`http://localhost:5173`** in your browser to view the dashboard and run the pipeline interactively.
+Open **`http://localhost:5173`** in your browser to access all 4 tabs (**AI Tools Catalog**, **Competitions & Hackathons**, **Substack Internships (Word / Docx)**, and **Flerken Studio Bot**).
 
 ---
 
-## Pipeline Stages
+### 3. CLI Execution Commands
 
-| Stage | Package / File | Purpose |
-|---|---|---|
-| **1. Discovery** | `src/discovery/` | Multi-source candidate discovery (Seed, GitHub API, Hacker News API). |
-| **2. Extraction** | `src/extraction/` | Official site crawling, pricing detection, feature extraction, logo resolution. |
-| **3. Cleaning** | `src/cleaning/` | URL canonicalization, HTML stripping, description clamping, entity sanitization. |
-| **4. Normalization** | `src/normalization/` | Name cleaning, company suffix stripping, alias collection. |
-| **5. Deduplication**| `src/deduplication/`| Domain-first and RapidFuzz fuzzy token-sort entity merging. |
-| **6. Classification**|`src/classification/`| Keyword-based rule engine mapping tools to taxonomy categories. |
-| **7. Relationships**| `src/relationships/`| Edge generation for `Tool -> solves -> Task` knowledge graphs. |
-| **8. Validation** | `src/validation/` | Quality gate verifying schemas, lengths, logos, and links. |
-| **9. Export** | `src/export/` | File generation (`CSV`, `JSON`) and Supabase synchronization. |
+You can also run each module standalone from the command line:
 
----
+```bash
+# 1. Run AI Tools Ingestion Pipeline
+python run.py
 
-## Data Storage & Output Formats
+# 2. Run Substack Multi-ATS Scraper & Word (.docx) Exporter
+python -m internatlas.substack.pipeline
 
-| File | Description |
-|---|---|
-| [`data/export/tools_sheet.csv`](data/export/tools_sheet.csv) | Flat CSV with Pricing, Features, Websites, Logos, and GitHub repos. |
-| [`data/entities.json`](data/entities.json) | Structured array of deduplicated tool entity objects. |
-| [`data/relationships.json`](data/relationships.json) | Relationship graph edges linking tools to tasks/capabilities. |
-| [`data/validation_report.json`](data/validation_report.json) | Quality gate breakdown with pass/fail counts and validation issues. |
+# 3. Run Flerken Studio Bot (Dry-Run: generates .md, .docx, verified_jobs.json & review_queue.json)
+PYTHONPATH=flerken-studio-bot/src python -m flerken_bot.cli run \
+  --config flerken-studio-bot/config/sources.yaml \
+  --output flerken-studio-bot/output \
+  --state-db flerken-studio-bot/state/seen.sqlite3 \
+  --dry-run
+```
 
 ---
 
 ## Running Automated Tests
 
-Run the test suite with pytest:
+Run both the core pipeline test suite and the Flerken Studio Bot unit test suite with `pytest`:
 
 ```bash
+# Core AI Orbit Pipeline unit tests (12 tests)
 pytest tests/ -v
-```
 
-All 12 automated unit tests cover:
-- URL normalization & scheme fallback
-- Canonical domain extraction
-- Entity name canonicalization
-- Deterministic UUIDv5 stability
-- Text cleaner & description length clamping
-- Freemium & Open-Source pricing extractors
-- Social link parsing (GitHub, Discord, Twitter, Docs)
-- Resilient logo fallbacks
+# Flerken Studio Bot unit tests (6 tests)
+PYTHONPATH=flerken-studio-bot/src pytest flerken-studio-bot/tests/test_quality.py -v
+```
 
 ---
 
