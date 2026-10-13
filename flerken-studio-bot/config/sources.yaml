@@ -1,0 +1,151 @@
+# Copy to config/sources.yaml and add sources you are allowed to access.
+# Greenhouse and Lever adapters use public employer-hosted job-board endpoints.
+# RSS sources can be aggregators; those are treated as candidates until an
+# official employer application URL can be identified and verified.
+publication:
+  url: https://flerkenstudio.substack.com/
+  name: Flerken Studio
+  brand: InternAtlas
+
+collection:
+  include_remote_global: true
+  include_india: true
+  early_career_only: true
+  max_jobs_per_issue: 60
+  # Never publish aggregator-only links as verified employer application links.
+  require_official_application_url: true
+  request_timeout_seconds: 15
+  user_agent: "FlerkenStudioBot/0.1 (+newsletter link verification)"
+
+sources:
+  # Active Greenhouse company boards
+  - type: greenhouse
+    name: Razorpay
+    board: razorpaysoftwareprivatelimited
+    enabled: true
+
+  - type: greenhouse
+    name: Groww
+    board: groww
+    enabled: true
+
+  - type: greenhouse
+    name: Stripe
+    board: stripe
+    enabled: true
+
+  - type: greenhouse
+    name: Cloudflare
+    board: cloudflare
+    enabled: true
+
+  - type: greenhouse
+    name: Databricks
+    board: databricks
+    enabled: true
+
+  - type: greenhouse
+    name: Figma
+    board: figma
+    enabled: true
+
+  - type: greenhouse
+    name: Scale AI
+    board: scaleai
+    enabled: true
+
+  - type: greenhouse
+    name: Discord
+    board: discord
+    enabled: true
+
+  - type: greenhouse
+    name: Rubrik
+    board: rubrik
+    enabled: true
+
+  - type: greenhouse
+    name: MongoDB
+    board: mongodb
+    enabled: true
+
+  - type: greenhouse
+    name: Waymo
+    board: waymo
+    enabled: true
+
+  - type: greenhouse
+    name: Jane Street
+    board: janestreet
+    enabled: true
+
+  - type: greenhouse
+    name: Anthropic
+    board: anthropic
+    enabled: true
+
+  - type: greenhouse
+    name: Duolingo
+    board: duolingo
+    enabled: true
+
+  - type: greenhouse
+    name: Reddit
+    board: reddit
+    enabled: true
+
+  - type: greenhouse
+    name: Pinterest
+    board: pinterest
+    enabled: true
+
+  # Active Lever company boards
+  - type: lever
+    name: CRED
+    site: cred
+    enabled: true
+
+  - type: lever
+    name: Meesho
+    site: meesho
+    enabled: true
+
+  - type: lever
+    name: Zeta
+    site: zeta
+    enabled: true
+
+  - type: lever
+    name: Palantir
+    site: palantir
+    enabled: true
+
+  - type: lever
+    name: Mistral AI
+    site: mistral
+    enabled: true
+
+  - type: lever
+    name: Spotify
+    site: spotify
+    enabled: true
+
+  # Examples; replace/add board names for companies you want to track.
+  # Greenhouse board token is often visible in the company's careers URL.
+  - type: greenhouse
+    name: Example Greenhouse company
+    board: REPLACE_WITH_GREENHOUSE_BOARD_TOKEN
+    enabled: false
+
+  # Lever site name is often the first segment in jobs.lever.co/<site>/...
+  - type: lever
+    name: Example Lever company
+    site: REPLACE_WITH_LEVER_SITE_NAME
+    enabled: false
+
+  # Add only RSS feeds whose terms permit automated fetching.
+  - type: rss
+    name: Example job feed
+    url: https://example.com/jobs.rss
+    kind: aggregator
+    enabled: false

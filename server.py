@@ -47,6 +47,10 @@ class CompetitionRunRequest(BaseModel):
     only: Optional[str] = None
 
 
+class SubstackRunRequest(BaseModel):
+    include_seed: bool = True
+
+
 
 
 from contextlib import asynccontextmanager
@@ -105,6 +109,18 @@ competitions_state = {
     "error": None,
 }
 competitions_stop_event = threading.Event()
+
+substack_state = {
+    "is_running": False,
+    "last_run": None,
+    "total": 0,
+    "completed_boards": 0,
+    "total_boards": 0,
+    "last_company": None,
+    "summary": None,
+    "status": "idle",
+    "error": None,
+}
 
 
 
@@ -527,6 +543,160 @@ async def download_competitions_excel():
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
+# ── Substack Early Career & Internships Endpoints ─────────────────────
+
+@app.get("/api/substack/jobs")
+async def get_substack_jobs():
+    """Return all stored Substack internship listings, grouped sections, and Substack Markdown preview."""
+    try:
+        from internatlas.substack.schema import init_db, fetch_all_jobs, upsert_jobs
+        from internatlas.substack.scrapers import get_verified_seed_roles
+        from internatlas.substack.processor import organize_for_substack
+        from internatlas.substack.exporter import (
+            build_substack_metadata,
+            generate_substack_markdown,
+            export_substack_docx,
+            export_substack_xlsx,
+        )
+
+        conn = init_db()
+        jobs = fetch_all_jobs(conn)
+        if not jobs:
+            # Auto-seed initial verified direct career portal listings on first load
+            seeded = organize_for_substack(get_verified_seed_roles())
+            upsert_jobs(conn, seeded)
+            jobs = fetch_all_jobs(conn)
+            export_substack_docx(jobs)
+            export_substack_xlsx(jobs)
+        conn.close()
+
+        meta = build_substack_metadata(jobs)
+        markdown_text = generate_substack_markdown(jobs)
+        return {
+            "jobs": jobs,
+            "title": meta["title"],
+            "subtitle": meta["subtitle"],
+            "date_str": meta["date_str"],
+            "total": len(jobs),
+            "sections": meta["sections"],
+            "markdown": markdown_text,
+        }
+    except Exception as e:
+        logging.getLogger("pipeline").warning(f"Error reading Substack DB: {e}")
+        return {"jobs": [], "sections": {}, "markdown": "", "total": 0, "error": str(e)}
+
+
+@app.get("/api/substack/status")
+async def get_substack_status():
+    """Return status of Substack ATS scraper."""
+    return substack_state
+
+
+@app.post("/api/substack/run")
+async def trigger_substack_run(req: SubstackRunRequest):
+    """Trigger live multi-ATS scraping (Greenhouse, Lever, Ashby, SmartRecruiters, Workday) + Word (.docx) export."""
+    if substack_state["is_running"]:
+        return JSONResponse(status_code=409, content={"error": "Substack pipeline is already running"})
+
+    substack_state["is_running"] = True
+    substack_state["status"] = "running"
+    substack_state["error"] = None
+    substack_state["completed_boards"] = 0
+    substack_state["total_boards"] = 0
+
+    def run_worker():
+        from internatlas.substack.pipeline import run_substack_pipeline
+
+        def on_progress(ev):
+            substack_state["completed_boards"] = ev.get("completed", 0)
+            substack_state["total_boards"] = ev.get("total", 0)
+            substack_state["last_company"] = ev.get("last_company")
+            broadcast_event({"type": "substack_progress", **substack_state})
+
+        try:
+            broadcast_event({"type": "substack_start", "message": "Substack ATS scraper started"})
+            summary = run_substack_pipeline(
+                include_seed=req.include_seed,
+                progress_cb=on_progress,
+                verbose=True,
+            )
+            substack_state["total"] = summary["total"]
+            substack_state["last_run"] = time.strftime("%Y-%m-%d %H:%M:%S")
+            substack_state["status"] = "completed"
+            substack_state["summary"] = {
+                "total": summary["total"],
+                "docx_file": summary["docx_file"],
+                "xlsx_file": summary["xlsx_file"],
+                "title": summary["title"],
+            }
+            broadcast_event({"type": "substack_complete", **substack_state})
+        except Exception as exc:
+            logging.getLogger("pipeline").error(f"Substack pipeline error: {exc}", exc_info=True)
+            substack_state["status"] = "error"
+            substack_state["error"] = str(exc)
+            broadcast_event({"type": "substack_error", "error": str(exc)})
+        finally:
+            substack_state["is_running"] = False
+
+    t = threading.Thread(target=run_worker, daemon=True)
+    t.start()
+    return {"status": "started", "message": "Substack multi-ATS scraper started in background"}
+
+
+@app.get("/api/substack/download-docx")
+async def download_substack_docx():
+    """Download latest formatted Substack Word (.docx) document."""
+    try:
+        from internatlas.substack import config as sub_config
+        from internatlas.substack.schema import init_db, fetch_all_jobs
+        from internatlas.substack.exporter import export_substack_docx
+
+        export_dir = sub_config.EXPORT_DIR
+        files = sorted(list(export_dir.glob("*.docx")), key=lambda f: f.stat().st_mtime, reverse=True)
+        if not files:
+            conn = init_db()
+            jobs = fetch_all_jobs(conn)
+            conn.close()
+            latest_file = export_substack_docx(jobs)
+        else:
+            latest_file = files[0]
+
+        return FileResponse(
+            latest_file,
+            filename=latest_file.name,
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        )
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+@app.get("/api/substack/download-xlsx")
+async def download_substack_xlsx():
+    """Download latest exported Substack Excel (.xlsx) file."""
+    try:
+        from internatlas.substack import config as sub_config
+        from internatlas.substack.schema import init_db, fetch_all_jobs
+        from internatlas.substack.exporter import export_substack_xlsx
+
+        export_dir = sub_config.EXPORT_DIR
+        files = sorted(list(export_dir.glob("*.xlsx")), key=lambda f: f.stat().st_mtime, reverse=True)
+        if not files:
+            conn = init_db()
+            jobs = fetch_all_jobs(conn)
+            conn.close()
+            latest_file = export_substack_xlsx(jobs)
+        else:
+            latest_file = files[0]
+
+        return FileResponse(
+            latest_file,
+            filename=latest_file.name,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
 @app.get("/api/pipeline/download")
 async def download_file(file: str):
     """Download an exported Excel or CSV file directly."""
@@ -542,8 +712,287 @@ async def download_file(file: str):
     return FileResponse(file_path, filename=safe_name, media_type=media_type)
 
 
+# ─────────────────────────────────────────────
+# Flerken Studio Bot Module Endpoints
+# ─────────────────────────────────────────────
+import sys
+from pathlib import Path
+from typing import Any, Dict
+
+FLERKEN_BOT_ROOT = Path(__file__).resolve().parent / "flerken-studio-bot"
+FLERKEN_BOT_SRC = str(FLERKEN_BOT_ROOT / "src")
+if FLERKEN_BOT_SRC not in sys.path:
+    sys.path.insert(0, FLERKEN_BOT_SRC)
+
+FLERKEN_CONFIG_PATH = FLERKEN_BOT_ROOT / "config" / "sources.yaml"
+FLERKEN_OUTPUT_DIR = FLERKEN_BOT_ROOT / "output"
+FLERKEN_STATE_DB = FLERKEN_BOT_ROOT / "state" / "seen.sqlite3"
+
+flerken_bot_state = {
+    "is_running": False,
+    "status": "idle",
+    "last_run": None,
+    "error": None,
+    "verified_count": 0,
+    "review_count": 0,
+    "latest_file": None,
+}
+
+
+class FlerkenRunRequest(BaseModel):
+    ignore_seen: bool = False
+    max_jobs: int = 60
+    early_career_only: bool = True
+    create_draft: bool = False
+
+
+class FlerkenSourceActionRequest(BaseModel):
+    action: str  # "toggle", "add", "delete", "update_settings"
+    index: Optional[int] = None
+    enabled: Optional[bool] = None
+    source: Optional[Dict[str, Any]] = None
+    collection: Optional[Dict[str, Any]] = None
+    publication: Optional[Dict[str, Any]] = None
+
+
+def _read_flerken_state() -> Dict[str, Any]:
+    import yaml
+    from flerken_bot.quality import SeenStore
+
+    FLERKEN_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    cfg = {}
+    if FLERKEN_CONFIG_PATH.exists():
+        cfg = yaml.safe_load(FLERKEN_CONFIG_PATH.read_text(encoding="utf-8")) or {}
+
+    store = SeenStore(FLERKEN_STATE_DB)
+    seen_count = store.count()
+
+    md_files = sorted(
+        [f for f in FLERKEN_OUTPUT_DIR.glob("*.md") if f.name != "latest_issue.md"],
+        key=lambda f: f.stat().st_mtime,
+        reverse=True,
+    )
+    latest_md_path = md_files[0] if md_files else (FLERKEN_OUTPUT_DIR / "latest_issue.md")
+    latest_markdown = ""
+    latest_filename = None
+    if latest_md_path and latest_md_path.exists():
+        latest_markdown = latest_md_path.read_text(encoding="utf-8")
+        latest_filename = latest_md_path.name
+
+    verified_jobs = []
+    verified_path = FLERKEN_OUTPUT_DIR / "verified_jobs.json"
+    if verified_path.exists():
+        try:
+            verified_jobs = json.loads(verified_path.read_text(encoding="utf-8"))
+        except Exception:
+            verified_jobs = []
+
+    review_queue = []
+    review_path = FLERKEN_OUTPUT_DIR / "review_queue.json"
+    if review_path.exists():
+        try:
+            review_queue = json.loads(review_path.read_text(encoding="utf-8"))
+        except Exception:
+            review_queue = []
+
+    return {
+        "bot_status": flerken_bot_state,
+        "config": cfg,
+        "seen_count": seen_count,
+        "latest_markdown": latest_markdown,
+        "latest_filename": latest_filename,
+        "verified_jobs": verified_jobs,
+        "review_queue": review_queue,
+        "issues": [
+            {
+                "name": f.name,
+                "size_kb": round(f.stat().st_size / 1024, 1),
+                "modified": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(f.stat().st_mtime)),
+            }
+            for f in md_files[:15]
+        ],
+    }
+
+
+@app.get("/api/flerken-bot/state")
+async def get_flerken_bot_state():
+    """Return full Flerken Studio Bot state, latest Markdown issue, verified jobs, review queue, and sources."""
+    try:
+        return _read_flerken_state()
+    except Exception as exc:
+        logging.getLogger("pipeline").error(f"Flerken bot state error: {exc}", exc_info=True)
+        return JSONResponse(status_code=500, content={"error": str(exc)})
+
+
+@app.post("/api/flerken-bot/run")
+async def trigger_flerken_bot_run(req: FlerkenRunRequest):
+    """Trigger Flerken Studio Bot collection, HTTP link verification, categorization, and Markdown/Word issue generation."""
+    if flerken_bot_state["is_running"]:
+        return JSONResponse(status_code=409, content={"error": "Flerken Studio Bot is already running"})
+
+    flerken_bot_state["is_running"] = True
+    flerken_bot_state["status"] = "running"
+    flerken_bot_state["error"] = None
+
+    def worker():
+        from flerken_bot.cli import run as flerken_run, create_substack_draft, load_config
+
+        try:
+            broadcast_event({"type": "flerken_start", "message": "Flerken Studio Bot started"})
+            md_path = flerken_run(
+                config_path=str(FLERKEN_CONFIG_PATH),
+                output_dir=str(FLERKEN_OUTPUT_DIR),
+                state_db=str(FLERKEN_STATE_DB),
+                dry_run=not req.create_draft,
+                ignore_seen=req.ignore_seen,
+                max_jobs_override=req.max_jobs,
+                early_career_only=req.early_career_only,
+            )
+            state_snapshot = _read_flerken_state()
+            flerken_bot_state["verified_count"] = len(state_snapshot["verified_jobs"])
+            flerken_bot_state["review_count"] = len(state_snapshot["review_queue"])
+            flerken_bot_state["latest_file"] = md_path.name if md_path else state_snapshot["latest_filename"]
+            flerken_bot_state["last_run"] = time.strftime("%Y-%m-%d %H:%M:%S")
+            flerken_bot_state["status"] = "completed"
+
+            if md_path and req.create_draft:
+                cfg = load_config(FLERKEN_CONFIG_PATH)
+                pub_url = os.getenv(
+                    "PUBLICATION_URL",
+                    str(cfg.get("publication", {}).get("url", "https://flerkenstudio.substack.com/")),
+                )
+                create_substack_draft(md_path, pub_url)
+
+            broadcast_event({"type": "flerken_complete", **flerken_bot_state})
+        except Exception as exc:
+            logging.getLogger("pipeline").error(f"Flerken Studio Bot error: {exc}", exc_info=True)
+            flerken_bot_state["status"] = "error"
+            flerken_bot_state["error"] = str(exc)
+            broadcast_event({"type": "flerken_error", "error": str(exc)})
+        finally:
+            flerken_bot_state["is_running"] = False
+
+    t = threading.Thread(target=worker, daemon=True)
+    t.start()
+    return {"status": "started", "message": "Flerken Studio Bot started in background"}
+
+
+@app.post("/api/flerken-bot/sources")
+async def update_flerken_sources(req: FlerkenSourceActionRequest):
+    """Toggle, add, or delete sources or update collection settings in flerken-studio-bot/config/sources.yaml."""
+    import yaml
+
+    try:
+        cfg = yaml.safe_load(FLERKEN_CONFIG_PATH.read_text(encoding="utf-8")) or {}
+        sources = cfg.get("sources", [])
+
+        if req.action == "toggle" and req.index is not None and 0 <= req.index < len(sources):
+            sources[req.index]["enabled"] = bool(
+                req.enabled if req.enabled is not None else not sources[req.index].get("enabled", False)
+            )
+        elif req.action == "add" and req.source:
+            new_src = dict(req.source)
+            new_src.setdefault("enabled", True)
+            sources.insert(0, new_src)
+        elif req.action == "delete" and req.index is not None and 0 <= req.index < len(sources):
+            sources.pop(req.index)
+        elif req.action == "update_settings":
+            if req.collection:
+                cfg.setdefault("collection", {}).update(req.collection)
+            if req.publication:
+                cfg.setdefault("publication", {}).update(req.publication)
+        else:
+            return JSONResponse(status_code=400, content={"error": "Invalid source action or parameters"})
+
+        cfg["sources"] = sources
+        FLERKEN_CONFIG_PATH.write_text(yaml.safe_dump(cfg, sort_keys=False, allow_unicode=True), encoding="utf-8")
+        return {"status": "ok", "config": cfg}
+    except Exception as exc:
+        return JSONResponse(status_code=500, content={"error": str(exc)})
+
+
+@app.post("/api/flerken-bot/reset-seen")
+async def reset_flerken_seen():
+    """Clear the SQLite SeenStore ledger so previously drafted roles can be drafted again."""
+    try:
+        from flerken_bot.quality import SeenStore
+
+        store = SeenStore(FLERKEN_STATE_DB)
+        store.clear()
+        return {"status": "ok", "seen_count": store.count()}
+    except Exception as exc:
+        return JSONResponse(status_code=500, content={"error": str(exc)})
+
+
+@app.post("/api/flerken-bot/create-draft")
+async def create_flerken_substack_draft():
+    """Create an unpublished Substack draft from the latest generated Markdown issue."""
+    try:
+        from flerken_bot.cli import create_substack_draft, load_config
+
+        md_files = sorted(
+            [f for f in FLERKEN_OUTPUT_DIR.glob("*.md") if f.name != "latest_issue.md"],
+            key=lambda f: f.stat().st_mtime,
+            reverse=True,
+        )
+        target = md_files[0] if md_files else (FLERKEN_OUTPUT_DIR / "latest_issue.md")
+        if not target.exists():
+            return JSONResponse(status_code=404, content={"error": "No Markdown issue generated yet. Run the bot first."})
+
+        cfg = load_config(FLERKEN_CONFIG_PATH)
+        pub_url = os.getenv(
+            "PUBLICATION_URL",
+            str(cfg.get("publication", {}).get("url", "https://flerkenstudio.substack.com/")),
+        )
+        create_substack_draft(target, pub_url)
+        return {"status": "ok", "message": f"Created unpublished Substack draft for {pub_url} from {target.name}"}
+    except Exception as exc:
+        return JSONResponse(status_code=400, content={"error": str(exc)})
+
+
+@app.get("/api/flerken-bot/download/{fmt}")
+async def download_flerken_bot_output(fmt: str):
+    """Download the latest Flerken Studio Bot output (.md, .docx, or review_queue.json)."""
+    FLERKEN_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    if fmt == "md":
+        md_files = sorted(
+            [f for f in FLERKEN_OUTPUT_DIR.glob("*.md") if f.name != "latest_issue.md"],
+            key=lambda f: f.stat().st_mtime,
+            reverse=True,
+        )
+        target = md_files[0] if md_files else (FLERKEN_OUTPUT_DIR / "latest_issue.md")
+        if not target.exists():
+            return JSONResponse(status_code=404, content={"error": "No Markdown issue found. Run the bot first."})
+        return FileResponse(target, filename=target.name, media_type="text/markdown; charset=utf-8")
+
+    if fmt == "docx":
+        docx_files = sorted(
+            [f for f in FLERKEN_OUTPUT_DIR.glob("*.docx") if f.name != "latest_issue.docx"],
+            key=lambda f: f.stat().st_mtime,
+            reverse=True,
+        )
+        target = docx_files[0] if docx_files else (FLERKEN_OUTPUT_DIR / "latest_issue.docx")
+        if not target.exists():
+            return JSONResponse(status_code=404, content={"error": "No Word (.docx) issue found. Run the bot first."})
+        return FileResponse(
+            target,
+            filename=target.name,
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        )
+
+    if fmt == "review":
+        target = FLERKEN_OUTPUT_DIR / "review_queue.json"
+        if not target.exists():
+            return JSONResponse(status_code=404, content={"error": "No review_queue.json found."})
+        return FileResponse(target, filename="review_queue.json", media_type="application/json")
+
+    return JSONResponse(status_code=400, content={"error": f"Unsupported format: {fmt}"})
+
+
 if __name__ == "__main__":
     uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=False)
+
+
 
 
 

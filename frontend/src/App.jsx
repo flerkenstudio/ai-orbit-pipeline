@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { AllCommunityModule, ModuleRegistry, themeAlpine } from 'ag-grid-community';
-import { Orbit, Download, Search, RefreshCw, CheckCircle2, XCircle, Globe, ExternalLink, Play, Sparkles, Trophy, Layers } from 'lucide-react';
+import { Orbit, Download, Search, RefreshCw, CheckCircle2, XCircle, Globe, ExternalLink, Play, Sparkles, Trophy, Layers, FileText, Bot } from 'lucide-react';
 import { useTools } from './hooks/useTools';
 import PipelineDrawer from './components/PipelineDrawer';
 import ScrapeUrlModal from './components/ScrapeUrlModal';
 import CompetitionsView from './components/CompetitionsView';
+import SubstackView from './components/SubstackView';
+import FlerkenBotView from './components/FlerkenBotView';
 
 // Register all AG Grid Community modules
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -228,6 +230,28 @@ export default function App() {
               <Trophy size={14} className="text-amber-500" />
               <span>Competitions &amp; Hackathons (InternAtlas)</span>
             </button>
+            <button
+              onClick={() => setActiveSection('substack')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                activeSection === 'substack'
+                  ? 'bg-white text-rose-700 shadow-2xs'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <FileText size={14} className="text-rose-500" />
+              <span>Substack Internships (Word / Docx)</span>
+            </button>
+            <button
+              onClick={() => setActiveSection('flerken_bot')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                activeSection === 'flerken_bot'
+                  ? 'bg-white text-violet-700 shadow-2xs'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <Bot size={14} className="text-violet-600" />
+              <span>Flerken Studio Bot</span>
+            </button>
           </div>
         </div>
 
@@ -260,6 +284,14 @@ export default function App() {
       {activeSection === 'competitions' ? (
         <div className="flex-1 flex flex-col overflow-hidden">
           <CompetitionsView />
+        </div>
+      ) : activeSection === 'substack' ? (
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <SubstackView />
+        </div>
+      ) : activeSection === 'flerken_bot' ? (
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <FlerkenBotView />
         </div>
       ) : (
         <>

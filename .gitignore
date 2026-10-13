@@ -19,4 +19,5 @@ data/export/*.csv
 data/export/*.xlsx
 *.db
 *.xlsx
+*.docx
 scratch_*.py

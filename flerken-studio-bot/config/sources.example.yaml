@@ -1,0 +1,38 @@
+# Copy to config/sources.yaml and add sources you are allowed to access.
+# Greenhouse and Lever adapters use public employer-hosted job-board endpoints.
+# RSS sources can be aggregators; those are treated as candidates until an
+# official employer application URL can be identified and verified.
+publication:
+  url: https://flerkenstudio.substack.com/
+  name: Flerken Studio
+  brand: InternAtlas
+
+collection:
+  include_remote_global: true
+  include_india: true
+  max_jobs_per_issue: 60
+  # Never publish aggregator-only links as verified employer application links.
+  require_official_application_url: true
+  request_timeout_seconds: 15
+  user_agent: "FlerkenStudioBot/0.1 (+newsletter link verification)"
+
+sources:
+  # Examples; replace/add board names for companies you want to track.
+  # Greenhouse board token is often visible in the company's careers URL.
+  - type: greenhouse
+    name: Example Greenhouse company
+    board: REPLACE_WITH_GREENHOUSE_BOARD_TOKEN
+    enabled: false
+
+  # Lever site name is often the first segment in jobs.lever.co/<site>/...
+  - type: lever
+    name: Example Lever company
+    site: REPLACE_WITH_LEVER_SITE_NAME
+    enabled: false
+
+  # Add only RSS feeds whose terms permit automated fetching.
+  - type: rss
+    name: Example job feed
+    url: https://example.com/jobs.rss
+    kind: aggregator
+    enabled: false

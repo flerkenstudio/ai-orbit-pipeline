@@ -1,0 +1,79 @@
+name: Flerken Studio newsletter draft
+
+on:
+  schedule:
+    # Run daily; the parity check below selects every other UTC date.
+    # 03:30 UTC is 09:00 India Standard Time.
+    - cron: "30 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: flerken-newsletter-draft
+  cancel-in-progress: false
+
+jobs:
+  build-draft:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install bot
+        run: python -m pip install -e '.[test,publish]'
+
+      - name: Restore deduplication state
+        uses: actions/cache@v4
+        with:
+          path: state/seen.sqlite3
+          key: flerken-state-${{ github.run_id }}
+          restore-keys: |
+            flerken-state-
+
+      - name: Decide whether today is an alternate day
+        id: cadence
+        shell: bash
+        run: |
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          from datetime import date, datetime, timezone
+          anchor = date.fromisoformat("2026-10-14")
+          today = datetime.now(timezone.utc).date()
+          due = (today - anchor).days >= 0 and (today - anchor).days % 2 == 0
+          print(f"run={'true' if due else 'false'}")
+          PY
+
+      - name: Run tests
+        if: steps.cadence.outputs.run == 'true'
+        run: pytest -q
+
+      - name: Collect jobs and generate Markdown (and optional unpublished draft)
+        if: steps.cadence.outputs.run == 'true'
+        env:
+          PYTHONUNBUFFERED: "1"
+          PUBLICATION_URL: https://flerkenstudio.substack.com/
+          COOKIES_STRING: ${{ secrets.SUBSTACK_COOKIES_STRING }}
+          CREATE_SUBSTACK_DRAFT: ${{ secrets.SUBSTACK_COOKIES_STRING != '' && 'true' || 'false' }}
+        run: python -m flerken_bot.cli --config config/sources.yaml --output output --state-db state/seen.sqlite3
+
+      - name: Upload generated newsletter and review queue
+        if: always() && steps.cadence.outputs.run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: flerken-studio-newsletter-${{ github.run_number }}
+          path: |
+            output/*.md
+            output/review_queue.json
+          if-no-files-found: warn
+          retention-days: 14
