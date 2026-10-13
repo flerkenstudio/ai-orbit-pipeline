@@ -99,11 +99,11 @@
 6. **[Employer Brand Analyst — MongoDB](https://www.mongodb.com/careers/jobs/8264146)**  
    📍 Gurugram · 🏢 In-Office
 
-7. **[International Payroll Analyst — Reddit](https://job-boards.greenhouse.io/reddit/jobs/8192369)**  
-   📍 Remote - United States · 🌐 Remote
-
-8. **[International Payroll Analyst — Reddit](https://job-boards.greenhouse.io/reddit/jobs/8234154)**  
+7. **[International Payroll Analyst — Reddit](https://job-boards.greenhouse.io/reddit/jobs/8234154)**  
    📍 Remote - United Kingdom · 🌐 Remote
+
+8. **[International Payroll Analyst — Reddit](https://job-boards.greenhouse.io/reddit/jobs/8192369)**  
+   📍 Remote - United States · 🌐 Remote
 
 9. **[Associate – Audiobook Licensing & Author Partnerships — Spotify](https://jobs.lever.co/spotify/4310f31c-90e1-4e8d-bdcf-dce39c145b8c)**  
    📍 New York, NY · 🌐 Remote
