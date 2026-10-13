@@ -129,6 +129,15 @@ def _find_substack_cmd() -> list[str]:
         raise RuntimeError("Substack CLI not installed. Run: pip install python-substack")
 
 
+def _normalize_cookie_str(raw: str) -> str:
+    val = raw.strip().strip('"').strip("'")
+    if not val:
+        return ""
+    if "=" not in val:
+        return f"substack.sid={val}; connect.sid={val}"
+    return val
+
+
 def create_substack_draft(markdown_path: Path, publication_url: str, cookies_string: str | None = None) -> int:
     """Use python-substack CLI; draft creation only. Never publish or send."""
     import subprocess
@@ -142,7 +151,9 @@ def create_substack_draft(markdown_path: Path, publication_url: str, cookies_str
     env = os.environ.copy()
     env["PUBLICATION_URL"] = publication_url
     if cookies_string and cookies_string.strip():
-        env["COOKIES_STRING"] = cookies_string.strip()
+        env["COOKIES_STRING"] = _normalize_cookie_str(cookies_string)
+    elif env.get("COOKIES_STRING"):
+        env["COOKIES_STRING"] = _normalize_cookie_str(env["COOKIES_STRING"])
 
     has_auth = bool(
         env.get("COOKIES_STRING")
