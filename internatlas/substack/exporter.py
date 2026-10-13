@@ -241,8 +241,9 @@ def export_substack_docx(jobs: list, export_dir=None) -> Path:
         if not sec_jobs:
             continue
 
+        emoji = SECTION_EMOJIS.get(sec_title, "📌")
         h2 = doc.add_heading(level=2)
-        run_h2 = h2.add_run(sec_title)
+        run_h2 = h2.add_run(f"{emoji} {sec_title} ({len(sec_jobs)})")
         run_h2.bold = True
         run_h2.font.size = Pt(14)
         run_h2.font.color.rgb = RGBColor(30, 41, 59)
@@ -252,7 +253,7 @@ def export_substack_docx(jobs: list, export_dir=None) -> Path:
             role = j.get("role_title", "").strip()
             url = j.get("apply_url", "").strip()
             loc = j.get("location", "India").strip()
-            mode = j.get("work_mode", "In-Office").strip()
+            mode = _format_mode_badge(j.get("work_mode", "In-Office"))
 
             p = doc.add_paragraph()
             p.paragraph_format.space_after = Pt(4)
@@ -262,14 +263,24 @@ def export_substack_docx(jobs: list, export_dir=None) -> Path:
             link_text = f"{comp} hiring - {role}"
             _add_hyperlink(p, url, link_text)
 
-            r_loc = p.add_run(f" ({loc} · {mode})")
+            r_loc = p.add_run(f" (📍 {loc} · {mode})")
             r_loc.font.size = Pt(11)
             r_loc.font.color.rgb = RGBColor(55, 65, 81)
 
     doc.add_paragraph("─" * 55)
+    h3_tips = doc.add_heading(level=3)
+    r_tips = h3_tips.add_run("💡 Pro-Tips for Applicants")
+    r_tips.bold = True
+    r_tips.font.size = Pt(12)
+
+    doc.add_paragraph("⚡ Apply Early: Early-career openings often close once candidate caps are reached.")
+    doc.add_paragraph("🎯 Tailor Your Resume: Align relevant skills and projects with each role's description.")
+    doc.add_paragraph("📬 Share With Friends: Forward this edition to a classmate or friend looking for internships!")
+
+    doc.add_paragraph("─" * 55)
     p_foot = doc.add_paragraph()
     r_foot = p_foot.add_run(
-        "All links in this edition are 100% verified direct official career portals. Happy applying and all the best!"
+        "🔒 All links in this edition are 100% verified direct official career portals. Happy applying and all the best!"
     )
     r_foot.italic = True
     r_foot.font.size = Pt(10.5)
