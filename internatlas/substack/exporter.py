@@ -117,80 +117,24 @@ def generate_substack_markdown(jobs: list) -> str:
         "",
     ]
 
-SECTION_EMOJIS = {
-    "Software Development & Core Engineering Opportunities": "💻",
-    "Artificial Intelligence & Machine Learning Opportunities": "🤖",
-    "Cybersecurity Opportunities": "🛡️",
-    "Data Analytics, Research & Intelligence Roles": "📊",
-    "Product Design, Media & Content Strategy Roles": "🎨",
-    "Business Operations, HR, Marketing & Strategy Roles": "💼",
-}
-
-
-def _format_mode_badge(mode: str) -> str:
-    m = (mode or "").strip().lower()
-    if "remote" in m:
-        return "🌐 Remote"
-    if "hybrid" in m:
-        return "⚡ Hybrid"
-    if "onsite" in m or "office" in m:
-        return "🏢 In-Office"
-    return "📌 " + (mode.strip() or "Unspecified")
-
-
-def generate_substack_markdown(jobs: list) -> str:
-    """Generates exact Substack Markdown matching the user's newsletter template."""
-    meta = build_substack_metadata(jobs)
-    lines = [
-        f"# **{meta['title']}**",
-        "",
-        f"✨ **Featured Employers:** {meta['subtitle']}",
-        "",
-        f"📅 **{meta['date_str']}**",
-        "",
-        "> 💡 **Curated & Verified Early-Career Digest**  ",
-        "> All links below are direct official career portals. Positions fill on a rolling basis, so apply early! 🚀",
-        "",
-        "---",
-        "",
-        "Hi Guys,",
-        "",
-        "Do like and restack this post to support our initiative! ❤️",
-        "",
-        "📲 If you want daily new opportunity alerts directly on your phone, join our community on WhatsApp/Telegram!",
-        "",
-        "---",
-        "",
-    ]
-
     for sec_title in SECTIONS_ORDER:
         sec_jobs = meta["sections"].get(sec_title, [])
         if not sec_jobs:
             continue
-        emoji = SECTION_EMOJIS.get(sec_title, "📌")
-        lines.append(f"## **{emoji} {sec_title} ({len(sec_jobs)})**")
+        lines.append(f"## **{sec_title}**")
         lines.append("")
         for idx, j in enumerate(sec_jobs, 1):
             comp = j.get("company", "").strip()
             role = j.get("role_title", "").strip()
             url = j.get("apply_url", "").strip()
             loc = j.get("location", "India").strip()
-            mode = _format_mode_badge(j.get("work_mode", "In-Office"))
-            lines.append(f"{idx}. **[{comp} hiring - {role}]({url})**  \n   📍 {loc} · {mode}")
-            lines.append("")
-        lines.append("---")
+            mode = j.get("work_mode", "In-Office").strip()
+            lines.append(f"{idx}. [{comp} hiring - {role}]({url}) ({loc} · {mode})")
         lines.append("")
 
-    lines.extend([
-        "### 💡 Pro-Tips for Applicants",
-        "- ⚡ **Apply Early:** Early-career openings often close once candidate caps are reached.",
-        "- 🎯 **Tailor Your Resume:** Align relevant skills and projects with each role's description.",
-        "- 📬 **Share With Friends:** Forward this edition to a classmate or friend looking for internships!",
-        "",
-        "---",
-        "",
-        "🔒 *All links in this edition are 100% verified direct official career portals. Happy applying and all the best!*",
-    ])
+    lines.append("---")
+    lines.append("")
+    lines.append("*All links in this edition are 100% verified direct official career portals. Happy applying and all the best!*")
     return "\n".join(lines)
 
 
@@ -241,9 +185,8 @@ def export_substack_docx(jobs: list, export_dir=None) -> Path:
         if not sec_jobs:
             continue
 
-        emoji = SECTION_EMOJIS.get(sec_title, "📌")
         h2 = doc.add_heading(level=2)
-        run_h2 = h2.add_run(f"{emoji} {sec_title} ({len(sec_jobs)})")
+        run_h2 = h2.add_run(sec_title)
         run_h2.bold = True
         run_h2.font.size = Pt(14)
         run_h2.font.color.rgb = RGBColor(30, 41, 59)
@@ -253,7 +196,7 @@ def export_substack_docx(jobs: list, export_dir=None) -> Path:
             role = j.get("role_title", "").strip()
             url = j.get("apply_url", "").strip()
             loc = j.get("location", "India").strip()
-            mode = _format_mode_badge(j.get("work_mode", "In-Office"))
+            mode = j.get("work_mode", "In-Office").strip()
 
             p = doc.add_paragraph()
             p.paragraph_format.space_after = Pt(4)
@@ -263,24 +206,14 @@ def export_substack_docx(jobs: list, export_dir=None) -> Path:
             link_text = f"{comp} hiring - {role}"
             _add_hyperlink(p, url, link_text)
 
-            r_loc = p.add_run(f" (📍 {loc} · {mode})")
+            r_loc = p.add_run(f" ({loc} · {mode})")
             r_loc.font.size = Pt(11)
             r_loc.font.color.rgb = RGBColor(55, 65, 81)
 
     doc.add_paragraph("─" * 55)
-    h3_tips = doc.add_heading(level=3)
-    r_tips = h3_tips.add_run("💡 Pro-Tips for Applicants")
-    r_tips.bold = True
-    r_tips.font.size = Pt(12)
-
-    doc.add_paragraph("⚡ Apply Early: Early-career openings often close once candidate caps are reached.")
-    doc.add_paragraph("🎯 Tailor Your Resume: Align relevant skills and projects with each role's description.")
-    doc.add_paragraph("📬 Share With Friends: Forward this edition to a classmate or friend looking for internships!")
-
-    doc.add_paragraph("─" * 55)
     p_foot = doc.add_paragraph()
     r_foot = p_foot.add_run(
-        "🔒 All links in this edition are 100% verified direct official career portals. Happy applying and all the best!"
+        "All links in this edition are 100% verified direct official career portals. Happy applying and all the best!"
     )
     r_foot.italic = True
     r_foot.font.size = Pt(10.5)
