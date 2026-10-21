@@ -767,15 +767,15 @@ def _read_flerken_state() -> Dict[str, Any]:
     store = SeenStore(FLERKEN_STATE_DB)
     seen_count = store.count()
 
+    md_files = sorted(
+        [f for f in FLERKEN_OUTPUT_DIR.glob("*.md") if f.name != "latest_issue.md"],
+        key=lambda f: f.stat().st_mtime,
+        reverse=True,
+    )
     latest_canonical = FLERKEN_OUTPUT_DIR / "latest_issue.md"
     if latest_canonical.exists() and latest_canonical.stat().st_size > 0:
         latest_md_path = latest_canonical
     else:
-        md_files = sorted(
-            [f for f in FLERKEN_OUTPUT_DIR.glob("*.md") if f.name != "latest_issue.md"],
-            key=lambda f: f.stat().st_mtime,
-            reverse=True,
-        )
         latest_md_path = md_files[0] if md_files else None
 
     latest_markdown = ""
