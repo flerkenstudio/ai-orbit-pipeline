@@ -1,7 +1,5 @@
-# Copy to config/sources.yaml and add sources you are allowed to access.
-# Greenhouse and Lever adapters use public employer-hosted job-board endpoints.
-# RSS sources can be aggregators; those are treated as candidates until an
-# official employer application URL can be identified and verified.
+# Direct Official ATS Boards for Flerken Studio Bot
+# Supported adapters: greenhouse, lever, ashby, rss
 publication:
   url: https://flerkenstudio.substack.com/
   name: Flerken Studio
@@ -18,7 +16,7 @@ collection:
   user_agent: "FlerkenStudioBot/0.1 (+newsletter link verification)"
 
 sources:
-  # Active Greenhouse company boards
+  # ── Active Greenhouse Company Boards ──────────────────────────
   - type: greenhouse
     name: Razorpay
     board: razorpaysoftwareprivatelimited
@@ -99,15 +97,115 @@ sources:
     board: pinterest
     enabled: true
 
-  # Active Lever company boards
+  - type: greenhouse
+    name: Thoughtworks
+    board: thoughtworks
+    enabled: true
+
+  - type: greenhouse
+    name: Smartsheet
+    board: smartsheet
+    enabled: true
+
+  - type: greenhouse
+    name: HackerRank
+    board: hackerrank
+    enabled: true
+
+  - type: greenhouse
+    name: CloudSEK
+    board: cloudsek
+    enabled: true
+
+  - type: greenhouse
+    name: TrueFoundry
+    board: truefoundry
+    enabled: true
+
+  - type: greenhouse
+    name: Zinnov
+    board: zinnov
+    enabled: true
+
+  - type: greenhouse
+    name: 66degrees
+    board: 66degrees
+    enabled: true
+
+  - type: greenhouse
+    name: AlphaGrep Securities
+    board: alphagrepsecurities
+    enabled: true
+
+  - type: greenhouse
+    name: Hyreo
+    board: hyreo
+    enabled: true
+
+  - type: greenhouse
+    name: Tower Research Capital
+    board: towerresearchcapital
+    enabled: true
+
+  - type: greenhouse
+    name: SingleStore
+    board: singlestore
+    enabled: true
+
+  - type: greenhouse
+    name: Scopely
+    board: scopely
+    enabled: true
+
+  - type: greenhouse
+    name: Headout
+    board: headoutcareers
+    enabled: true
+
+  - type: greenhouse
+    name: Glance
+    board: glance
+    enabled: true
+
+  - type: greenhouse
+    name: InMobi
+    board: inmobi
+    enabled: true
+
+  - type: greenhouse
+    name: Instawork
+    board: instawork
+    enabled: true
+
+  # ── Active Lever Company Boards ───────────────────────────────
   - type: lever
-    name: CRED
-    site: cred
+    name: Paytm
+    site: paytm
+    enabled: true
+
+  - type: lever
+    name: Merkle Science
+    site: merklescience
+    enabled: true
+
+  - type: lever
+    name: FamPay
+    site: fampay
     enabled: true
 
   - type: lever
     name: Meesho
     site: meesho
+    enabled: true
+
+  - type: lever
+    name: Hevo Data
+    site: hevodata
+    enabled: true
+
+  - type: lever
+    name: CRED
+    site: cred
     enabled: true
 
   - type: lever
@@ -130,20 +228,78 @@ sources:
     site: spotify
     enabled: true
 
-  # Examples; replace/add board names for companies you want to track.
-  # Greenhouse board token is often visible in the company's careers URL.
+  # ── Active Ashby Company Boards ───────────────────────────────
+  - type: ashby
+    name: Sarvam AI
+    board: sarvam
+    enabled: true
+
+  - type: ashby
+    name: Ema
+    board: ema
+    enabled: true
+
+  - type: ashby
+    name: Composio
+    board: composio
+    enabled: true
+
+  - type: ashby
+    name: SPAN
+    board: span
+    enabled: true
+
+  - type: ashby
+    name: Airbound
+    board: airbound
+    enabled: true
+
+  - type: ashby
+    name: Human Archive
+    board: humanarchive
+    enabled: true
+
+  - type: ashby
+    name: Josys
+    board: josys
+    enabled: true
+
+  - type: ashby
+    name: Atlys
+    board: atlys
+    enabled: true
+
+  - type: ashby
+    name: Meraki Labs
+    board: Meraki-Labs
+    enabled: true
+
+  - type: ashby
+    name: Interview Kickstart
+    board: interview-kickstart
+    enabled: true
+
+  - type: ashby
+    name: Laminar
+    board: laminar-jobs
+    enabled: true
+
+  - type: ashby
+    name: Libra AI
+    board: libra
+    enabled: true
+
+  # ── Examples & Optional Feeds ────────────────────────────────
   - type: greenhouse
     name: Example Greenhouse company
     board: REPLACE_WITH_GREENHOUSE_BOARD_TOKEN
     enabled: false
 
-  # Lever site name is often the first segment in jobs.lever.co/<site>/...
   - type: lever
     name: Example Lever company
     site: REPLACE_WITH_LEVER_SITE_NAME
     enabled: false
 
-  # Add only RSS feeds whose terms permit automated fetching.
   - type: rss
     name: Example job feed
     url: https://example.com/jobs.rss

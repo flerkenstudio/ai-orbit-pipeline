@@ -45,7 +45,8 @@ def collect_greenhouse(source: dict[str, Any], session: requests.Session, timeou
     if not board or board.startswith("REPLACE_"):
         LOG.warning("Skipping Greenhouse source %s: configure its board token", source.get("name"))
         return []
-    payload = _get_json(f"https://boards-api.greenhouse.io/v1/boards/{board}/jobs?content=true", session, timeout)
+    base_domain = "boards-api.eu.greenhouse.io" if source.get("eu") else "boards-api.greenhouse.io"
+    payload = _get_json(f"https://{base_domain}/v1/boards/{board}/jobs?content=true", session, timeout)
     jobs: list[Job] = []
     for item in payload.get("jobs", []):
         location = (item.get("location") or {}).get("name") or "Location not specified"
@@ -91,6 +92,42 @@ def collect_lever(source: dict[str, Any], session: requests.Session, timeout: in
             source_name=str(source.get("name") or site),
             source_kind="official",
             published_at=str(item.get("createdAt") or ""),
+            verification_status="pending",
+        ))
+    return jobs
+
+
+def collect_ashby(source: dict[str, Any], session: requests.Session, timeout: int) -> list[Job]:
+    site = str(source.get("site") or source.get("board") or source.get("slug") or "").strip()
+    if not site or site.startswith("REPLACE_"):
+        LOG.warning("Skipping Ashby source %s: configure its board/site", source.get("name"))
+        return []
+    url = f"https://api.ashbyhq.com/posting-api/job-board/{site}"
+    payload = _get_json(url, session, timeout)
+    jobs: list[Job] = []
+    for item in payload.get("jobs", []) if isinstance(payload, dict) else []:
+        title = (item.get("title") or "Untitled role").strip()
+        location = item.get("location") or "Location not specified"
+        is_remote = bool(item.get("isRemote"))
+        workplace = item.get("workplaceType") or ""
+        mode = "Remote" if is_remote else (workplace.title() if workplace else ("Remote" if "remote" in location.lower() else "In-office / unspecified"))
+        job_url = (item.get("jobUrl") or "").strip()
+        if not job_url and item.get("id"):
+            job_url = f"https://jobs.ashbyhq.com/{site}/{item['id']}"
+        dept = item.get("department") or item.get("team") or "Other Opportunities"
+        content = clean_html(item.get("descriptionPlain") or item.get("descriptionHtml") or "")
+        jobs.append(Job(
+            title=title,
+            company=str(source.get("company") or source.get("name") or site),
+            url=job_url,
+            official_url=job_url,
+            location=location,
+            work_mode=mode,
+            category=str(dept),
+            description=content,
+            source_name=str(source.get("name") or site),
+            source_kind="official",
+            published_at=str(item.get("publishedAt") or ""),
             verification_status="pending",
         ))
     return jobs
@@ -150,7 +187,7 @@ def collect_sources(config: dict[str, Any]) -> list[Job]:
     session = requests.Session()
     session.headers.update({"User-Agent": collection.get("user_agent", "FlerkenStudioBot/0.1")})
     jobs: list[Job] = []
-    adapters = {"greenhouse": collect_greenhouse, "lever": collect_lever, "rss": collect_rss}
+    adapters = {"greenhouse": collect_greenhouse, "lever": collect_lever, "ashby": collect_ashby, "rss": collect_rss}
 
     enabled_sources = []
     for source in config.get("sources", []):

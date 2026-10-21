@@ -53,15 +53,26 @@ def run(
         if early_candidates:
             candidates = early_candidates
 
+    # Sort candidates by recency (newest published_at first)
+    candidates.sort(key=lambda j: j.published_at or "", reverse=True)
+
     for job in candidates:
         job.category = categorize(job)
 
     max_jobs = int(max_jobs_override or collection.get("max_jobs_per_issue", 60))
     store = SeenStore(state_db)
 
-    # Check additional candidates beyond max_jobs in case some fail HTTP verification
-    pool_to_verify = candidates if ignore_seen else store.only_new(candidates)
-    pool_to_verify = pool_to_verify[: max(max_jobs * 2, 100)]
+    # Prioritize unseen fresh candidates, backfilling with freshest active live candidates if needed
+    new_candidates = store.only_new(candidates)
+    if ignore_seen:
+        pool_to_verify = candidates
+    elif len(new_candidates) >= max_jobs:
+        pool_to_verify = new_candidates
+    else:
+        seen_candidates = [c for c in candidates if c not in new_candidates]
+        pool_to_verify = new_candidates + seen_candidates
+
+    pool_to_verify = pool_to_verify[: max(max_jobs * 2, 140)]
 
     session = requests.Session()
     session.headers.update({"User-Agent": collection.get("user_agent", "FlerkenStudioBot/0.1")})

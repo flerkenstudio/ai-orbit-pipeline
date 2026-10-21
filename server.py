@@ -772,12 +772,7 @@ def _read_flerken_state() -> Dict[str, Any]:
         key=lambda f: f.stat().st_mtime,
         reverse=True,
     )
-    latest_canonical = FLERKEN_OUTPUT_DIR / "latest_issue.md"
-    if latest_canonical.exists() and latest_canonical.stat().st_size > 0:
-        latest_md_path = latest_canonical
-    else:
-        latest_md_path = md_files[0] if md_files else None
-
+    latest_md_path = md_files[0] if md_files else (FLERKEN_OUTPUT_DIR / "latest_issue.md")
     latest_markdown = ""
     latest_filename = None
     if latest_md_path and latest_md_path.exists():
@@ -840,22 +835,7 @@ async def trigger_flerken_bot_run(req: FlerkenRunRequest):
     flerken_bot_state["error"] = None
 
     def worker():
-        import importlib
-        import flerken_bot.models
-        import flerken_bot.sources
-        import flerken_bot.quality
-        import flerken_bot.render
-        import flerken_bot.cli
-
-        importlib.reload(flerken_bot.models)
-        importlib.reload(flerken_bot.sources)
-        importlib.reload(flerken_bot.quality)
-        importlib.reload(flerken_bot.render)
-        importlib.reload(flerken_bot.cli)
-
-        flerken_run = flerken_bot.cli.run
-        create_substack_draft = flerken_bot.cli.create_substack_draft
-        load_config = flerken_bot.cli.load_config
+        from flerken_bot.cli import run as flerken_run, create_substack_draft, load_config
 
         try:
             broadcast_event({"type": "flerken_start", "message": "Flerken Studio Bot started"})
@@ -966,18 +946,13 @@ async def create_flerken_substack_draft(req: Optional[FlerkenDraftRequest] = Non
             lines.append(f'COOKIES_STRING="{cookies_str}"')
             env_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
-        latest_canonical = FLERKEN_OUTPUT_DIR / "latest_issue.md"
-        if latest_canonical.exists() and latest_canonical.stat().st_size > 0:
-            target = latest_canonical
-        else:
-            md_files = sorted(
-                [f for f in FLERKEN_OUTPUT_DIR.glob("*.md") if f.name != "latest_issue.md"],
-                key=lambda f: f.stat().st_mtime,
-                reverse=True,
-            )
-            target = md_files[0] if md_files else None
-
-        if not target or not target.exists():
+        md_files = sorted(
+            [f for f in FLERKEN_OUTPUT_DIR.glob("*.md") if f.name != "latest_issue.md"],
+            key=lambda f: f.stat().st_mtime,
+            reverse=True,
+        )
+        target = md_files[0] if md_files else (FLERKEN_OUTPUT_DIR / "latest_issue.md")
+        if not target.exists():
             return JSONResponse(status_code=404, content={"error": "No Markdown issue generated yet. Run the bot first."})
 
         cfg = load_config(FLERKEN_CONFIG_PATH)
