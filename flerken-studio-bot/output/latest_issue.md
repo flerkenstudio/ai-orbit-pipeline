@@ -1,96 +1,91 @@
-# 🔴 InternAtlas — 21 Oct 2026 — 60 Early-Career Opportunities
+# 🔴 InternAtlas — 53 Verified Internships at Top Companies — 22 October 2026
 
-Reddit, Stripe, Instawork, Razorpay, MongoDB, Airbound, Atlys, HackerRank, and more
-
-OCT 21, 2026
-
----
+### From Stripe, Pinterest, Atlys and Ema - explore opportunities across tech, AI, product, design, and more, with direct links to company career pages.
 
 Hi everyone,
 
-Here are newly collected early-career opportunities. Please check the employer's application page for current eligibility and availability.
+Welcome to today's curated edition of 53 verified early career & internship opportunities across Tier-1 tech MNCs, high-growth startups, and core engineering leaders in India.
 
-## Product Design, Media & Content Strategy Roles
+Every role is verified directly on official company career portals with zero broker sites and zero fees. Do like and restack this post to support our initiative and help your peers!
 
-1. [International Payroll Analyst — Reddit](https://job-boards.greenhouse.io/reddit/jobs/8234154) (Remote - United Kingdom · Remote)
-2. [International Payroll Analyst — Reddit](https://job-boards.greenhouse.io/reddit/jobs/8192369) (Remote - United States · Remote)
-3. [Social Media, Customer Support Associate — Stripe](https://stripe.com/careers/listing/social-media-customer-support-associate/7962437?gh_jid=7962437) (Bengaluru · In-office / unspecified)
-4. [Employer Brand Analyst — MongoDB](https://www.mongodb.com/careers/jobs/8264146) (Gurugram · In-office / unspecified)
-5. [Inventory Management Intern — Instawork](https://job-boards.greenhouse.io/instawork/jobs/4646658006) (Bengaluru, Karnataka, India · In-office / unspecified)
-6. [Junior Analyst, Risk Management — Razorpay](https://job-boards.greenhouse.io/razorpaysoftwareprivatelimited/jobs/4740722005) (Bengaluru · In-office / unspecified)
-7. [Product Analyst — Headout](https://job-boards.greenhouse.io/headoutcareers/jobs/4621320006?gh_jid=4621320006) (Bengaluru · In-office / unspecified)
-8. [Sourcing & Onboarding Associate — Atlys](https://jobs.ashbyhq.com/atlys/db0a94bc-cc62-48f1-9515-81f6e934e879) (Delhi HQ · Onsite)
-9. [Intern - Employer Branding — Zinnov](https://job-boards.greenhouse.io/zinnov/jobs/4412599009) (Hyderabad · In-office / unspecified)
-
-## Business Operations, HR, Marketing & Strategy Roles
-
-1. [University Recruiter (Fixed Term) — Stripe](https://stripe.com/careers/listing/university-recruiter-fixed-term/8226211?gh_jid=8226211) (San Francisco, New York, Seattle, US-Remote · Remote)
-2. [Risk Operations Analyst - SSO — Stripe](https://stripe.com/careers/listing/risk-operations-analyst-sso/8175824?gh_jid=8175824) (Remote · Remote)
-3. [Risk Operations Analyst — Stripe](https://stripe.com/careers/listing/risk-operations-analyst/7230921?gh_jid=7230921) (Remote · Remote)
-4. [Monetization Operations Analyst — Stripe](https://stripe.com/careers/listing/monetization-operations-analyst/8247120?gh_jid=8247120) (Bengaluru · In-office / unspecified)
-5. [Operations Associate, Apprenticeship — Stripe](https://stripe.com/careers/listing/operations-associate-apprenticeship/8131339?gh_jid=8131339) (Bengaluru · In-office / unspecified)
-6. [Credit Risk Operations Associate — Stripe](https://stripe.com/careers/listing/credit-risk-operations-associate/8104748?gh_jid=8104748) (Bangalore · In-office / unspecified)
-7. [Operations Associate, Sanctions — Stripe](https://stripe.com/careers/listing/operations-associate-sanctions/8098394?gh_jid=8098394) (Bengaluru · In-office / unspecified)
-8. [Fraud Operations Associate (Mandarin Speaking) — Stripe](https://stripe.com/careers/listing/fraud-operations-associate-mandarin-speaking/8076652?gh_jid=8076652) (Bengaluru · In-office / unspecified)
-9. [Fraud Operations Associate SDC — Stripe](https://stripe.com/careers/search?gh_jid=8066310) (Bengaluru · In-office / unspecified)
-10. [Verifications Operations Associate — Stripe](https://stripe.com/careers/listing/verifications-operations-associate/8022703?gh_jid=8022703) (Bengaluru · In-office / unspecified)
-11. [Product Support Operations Associate, Weekend Shift — Stripe](https://stripe.com/careers/listing/product-support-operations-associate-weekend-shift/7975698?gh_jid=7975698) (Bengaluru · In-office / unspecified)
-12. [Product Operations Analyst — Instawork](https://job-boards.greenhouse.io/instawork/jobs/4350762006) (Bengaluru, Karnataka, India · In-office / unspecified)
-13. [Associate, HR Shared Services — MongoDB](https://www.mongodb.com/careers/jobs/8173777) (Gurugram · In-office / unspecified)
-14. [Associate, HR Shared Services — MongoDB](https://www.mongodb.com/careers/jobs/8246377) (Gurugram · In-office / unspecified)
-15. [Associate Recruiter — MongoDB](https://www.mongodb.com/careers/jobs/7217699) (Gurugram · In-office / unspecified)
-16. [Real Estate Analyst — MongoDB](https://www.mongodb.com/careers/jobs/8094118) (Bengaluru; Gurugram · In-office / unspecified)
-17. [Sales Support Associate — MongoDB](https://www.mongodb.com/careers/jobs/8226033) (Gurugram · In-office / unspecified)
-18. [Facility & Admin Associate — Airbound](https://jobs.ashbyhq.com/airbound/a4e90a0d-10a9-4d09-888e-bfce3d938f48) (Bangalore · Onsite)
-19. [Pre Sales Intern — Atlys](https://jobs.ashbyhq.com/atlys/906d7ff6-04f3-4211-99ce-71d373a95613) (Delhi HQ · Onsite)
-20. [Compliance & Legal Intern — Airbound](https://jobs.ashbyhq.com/airbound/725a71d2-d210-4666-8e8e-15106dea1ab9) (Bangalore · Onsite)
-21. [Pre Sales Associate — Atlys](https://jobs.ashbyhq.com/atlys/f0299bf8-7dc7-4d23-95b7-3312d72a68e1) (Delhi HQ · Onsite)
-22. [Analyst, Banking Alliances — Razorpay](https://job-boards.greenhouse.io/razorpaysoftwareprivatelimited/jobs/4740728005) (Bengaluru · In-office / unspecified)
-23. [Analyst, Banking Alliances — Razorpay](https://job-boards.greenhouse.io/razorpaysoftwareprivatelimited/jobs/4741226005) (Chennai · In-office / unspecified)
-24. [Intern - People Success Partner — Zinnov](https://job-boards.greenhouse.io/zinnov/jobs/4410815009) (Koramangala, Bangalore, Karnataka, India · In-office / unspecified)
-25. [Intern - People Success Partner — Zinnov](https://job-boards.greenhouse.io/zinnov/jobs/4410812009) (Koramangala, Bangalore, Karnataka, India · In-office / unspecified)
-26. [HR Intern — Tower Research Capital](http://tower-research.com/open-positions/) (Gurgaon · In-office / unspecified)
-27. [Intern - Founders Office and Alliances — TrueFoundry](https://app.careerpuck.com/job-board/truefoundry/job/5433840008?gh_jid=5433840008) (Bengaluru · In-office / unspecified)
-
-## Cybersecurity Opportunities
-
-1. [Security Analyst — Stripe](https://stripe.com/careers/listing/security-analyst/8142302?gh_jid=8142302) (US Remote · Remote)
-
-## Data Analytics, Research & Intelligence Roles
-
-1. [Strategy & Analytics Business Partner Analyst — Stripe](https://stripe.com/careers/listing/strategy-analytics-business-partner-analyst/8079783?gh_jid=8079783) (US-SF, US-Seattle, US-NYC, US-Chicago, US-Georgia or US-Remote · Remote)
-2. [Credit Risk Analyst Commercial Underwriter — Stripe](https://stripe.com/careers/listing/credit-risk-analyst-commercial-underwriter/7540441?gh_jid=7540441) (Chicago, US-Remote, Canada-Remote · Remote)
-3. [AR Analyst — Stripe](https://stripe.com/careers/listing/ar-analyst/8247127?gh_jid=8247127) (Bangalore · In-office / unspecified)
-4. [Third Party Risk Analyst — Stripe](https://stripe.com/careers/listing/third-party-risk-analyst/8189018?gh_jid=8189018) (Bengaluru · In-office / unspecified)
-5. [Credit Risk Analyst, North American Underwriter — Stripe](https://stripe.com/careers/listing/credit-risk-analyst-north-american-underwriter/7612192?gh_jid=7612192) (Toronto, Remote-Canada · Remote)
-6. [Data Analyst, Business Finance — Razorpay](https://job-boards.greenhouse.io/razorpaysoftwareprivatelimited/jobs/4744129005) (Bengaluru · In-office / unspecified)
-7. [Anthropic STEM Fellow — Anthropic](https://job-boards.greenhouse.io/anthropic/jobs/5452403008) (Remote-Friendly, United States; San Francisco, CA · Remote)
-8. [Conceptual Reasoning Fellow — Anthropic](https://job-boards.greenhouse.io/anthropic/jobs/5447080008) (Remote-Friendly, United States; San Francisco, CA · Remote)
-9. [UX Quantitative Research Intern (USA) — Pinterest](https://www.pinterestcareers.com/jobs/8140217/ux-quantitative-research-intern-usa/) (Remote, US · Remote)
-
-## Other Early-Career Opportunities
-
-1. [Corporate Accounting Analyst (Bangalore) — Stripe](https://stripe.com/careers/listing/corporate-accounting-analyst-bangalore/8273713?gh_jid=8273713) (Bengaluru · In-office / unspecified)
-
-## Software Development & Core Engineering Opportunities
-
-1. [Software Engineer, Intern — Stripe](https://stripe.com/careers/listing/software-engineer-intern/8031833?gh_jid=8031833) (Bengaluru · In-office / unspecified)
-2. [Associate TSE II — MongoDB](https://www.mongodb.com/careers/jobs/8238617) (Gurugram · In-office / unspecified)
-3. [Associate TSE II — MongoDB](https://www.mongodb.com/careers/jobs/8205430) (Bengaluru · In-office / unspecified)
-4. [Software Development Engineer Intern — HackerRank](https://job-boards.greenhouse.io/hackerrank/jobs/8229735) (Onsite in Bangalore · In-office / unspecified)
-5. [Intern-Technical Artist - Royal Lounge Casino — Scopely](https://job-boards.greenhouse.io/scopely/jobs/5440761008?gh_jid=5440761008) (IN - Bangalore, India · In-office / unspecified)
-6. [Intern - QA Engineer - Royal Lounge Casino — Scopely](https://job-boards.greenhouse.io/scopely/jobs/5448999008?gh_jid=5448999008) (IN - Bangalore, India · In-office / unspecified)
-7. [Software Procurement Intern — Thoughtworks](https://www.thoughtworks.com/careers/jobs/8236673?gh_jid=8236673) (Gurgaon, India; Pune, India · In-office / unspecified)
-8. [Software Engineer Intern 2027 (USA) — Pinterest](https://www.pinterestcareers.com/jobs/7838577/software-engineer-intern-2027-usa/) (San Francisco, CA, US; Remote, US · Remote)
-9. [Solutions Engineer Intern 2027 (USA) — Pinterest](https://www.pinterestcareers.com/jobs/8214788/solutions-engineer-intern-2027-usa/) (San Francisco, CA, US; Remote, US · Remote)
-10. [University Grad Software Engineer 2027 (USA) — Pinterest](https://www.pinterestcareers.com/jobs/7838591/university-grad-software-engineer-2027-usa/) (San Francisco, CA, US; Remote, US · Remote)
-11. [Intern - AI/ML — Tower Research Capital](http://tower-research.com/open-positions/) (Gurgaon · In-office / unspecified)
-
-## Artificial Intelligence & Machine Learning Opportunities
-
-1. [Product Analyst II — InMobi](https://job-boards.greenhouse.io/inmobi/jobs/8181422) (Bangalore · In-office / unspecified)
-2. [Intern - Creative & Communications, People Team — InMobi](https://job-boards.greenhouse.io/inmobi/jobs/8207429) (Bangalore · In-office / unspecified)
+📲 Want daily opportunity alerts directly on your phone? Join our community on WhatsApp.
 
 ---
 
-*Application links were checked for reachability, but a reachable page does not guarantee that a role remains open. Confirm eligibility, deadlines, and job details on the employer's official careers page before applying.*
+## 💼 Business Ops & HR (19)
+
+1. **Stripe** — Operations Associate, Apprenticeship 📍 Bengaluru · 🏢 In-Office · **[Apply Direct ↗︎](https://stripe.com/careers/listing/operations-associate-apprenticeship/8131339?gh_jid=8131339)**
+2. **Tower Research Capital** — HR Intern 📍 Gurgaon · 🏢 In-Office · **[Apply Direct ↗︎](http://tower-research.com/open-positions/)**
+3. **Atlys** — Pre Sales Intern 📍 Delhi HQ · 🏢 In-Office · **[Apply Direct ↗︎](https://jobs.ashbyhq.com/atlys/906d7ff6-04f3-4211-99ce-71d373a95613)**
+4. **Airbound** — Compliance & Legal Intern 📍 Bangalore · 🏢 In-Office · **[Apply Direct ↗︎](https://jobs.ashbyhq.com/airbound/725a71d2-d210-4666-8e8e-15106dea1ab9)**
+5. **Zinnov** — Intern - People Success Partner 📍 Koramangala, Bangalore, Karnataka, India · 🏢 In-Office · **[Apply Direct ↗︎](https://job-boards.greenhouse.io/zinnov/jobs/4410815009)**
+6. **Zinnov** — Intern - People Success Partner 📍 Koramangala, Bangalore, Karnataka, India · 🏢 In-Office · **[Apply Direct ↗︎](https://job-boards.greenhouse.io/zinnov/jobs/4410812009)**
+7. **TrueFoundry** — Intern - Founders Office and Alliances 📍 Bengaluru · 🏢 In-Office · **[Apply Direct ↗︎](https://app.careerpuck.com/job-board/truefoundry/job/5433840008?gh_jid=5433840008)**
+8. **Sarvam AI** — Growth Marketing Intern 📍 Bengaluru · 🏢 In-Office · **[Apply Direct ↗︎](https://jobs.ashbyhq.com/sarvam/1eb3008a-2014-4a6c-8a35-cfa7caf8a60f)**
+9. **Sarvam AI** — Marketing Intern 📍 Bengaluru · 🏢 In-Office · **[Apply Direct ↗︎](https://jobs.ashbyhq.com/sarvam/ef7f079b-6a1f-4b27-9cfb-a5f68fe825c7)**
+10. **SPAN** — HR Intern 📍 Bengaluru · 🏢 In-Office · **[Apply Direct ↗︎](https://jobs.ashbyhq.com/span/1a44454a-c4eb-4a73-8f5b-7d3b921c0c1f)**
+11. **Instawork** — Operations Management Intern 📍 Bengaluru, Karnataka, India · 🏢 In-Office · **[Apply Direct ↗︎](https://job-boards.greenhouse.io/instawork/jobs/4618554006)**
+12. **Instawork** — IT Intern – Gadget & Tech Support Operations 📍 Bengaluru, Karnataka, India · 🏢 In-Office · **[Apply Direct ↗︎](https://job-boards.greenhouse.io/instawork/jobs/4646670006)**
+13. **Instawork** — HR Intern 📍 Bengaluru, Karnataka, India · 🏢 In-Office · **[Apply Direct ↗︎](https://job-boards.greenhouse.io/instawork/jobs/4686783006)**
+14. **Human Archive** — Founder's Office Intern - Partnerships 📍 India · 🏢 In-Office · **[Apply Direct ↗︎](https://jobs.ashbyhq.com/humanarchive/4c694746-a082-4ee9-9dcd-06a1b82f44ee)**
+15. **Interview Kickstart** — Intern, Talent Acquisition 📍 India · 🏢 In-Office · **[Apply Direct ↗︎](https://jobs.ashbyhq.com/interview-kickstart/7653eff0-a253-4165-b4a4-17c2cd0cbfa2)**
+16. **Libra AI** — Founder's Office Intern 📍 Bengaluru · 🏢 In-Office · **[Apply Direct ↗︎](https://jobs.ashbyhq.com/libra/b017c290-38d2-4e77-8d56-96f9dd60ff93)**
+17. **Hyreo** — Udaan Intern - Business Finance 📍 Bengaluru, Karnataka, India · 🏢 In-Office · **[Apply Direct ↗︎](https://job-boards.greenhouse.io/hyreo/jobs/5334444004)**
+18. **Meesho** — Trainee - Recruitment Coordinator 📍 Bangalore, Karnataka · 🏢 In-Office · **[Apply Direct ↗︎](https://jobs.lever.co/meesho/1de2fc88-e203-4f1a-8046-55df700de4be)**
+19. **Merkle Science** — Product Marketing -Intern 📍 New York · 🌐 Remote · **[Apply Direct ↗︎](https://jobs.lever.co/merklescience/09d5dbea-f8bc-44c0-9f03-b263f32144e8)**
+
+## 💻 Software Engineering (13)
+
+1. **Stripe** — Software Engineer, Intern 📍 Bengaluru · 🏢 In-Office · **[Apply Direct ↗︎](https://stripe.com/careers/listing/software-engineer-intern/8031833?gh_jid=8031833)**
+2. **Pinterest** — Software Engineer Intern 2027 (USA) 📍 San Francisco, CA, US; Remote, US · 🌐 Remote · **[Apply Direct ↗︎](https://www.pinterestcareers.com/jobs/7838577/software-engineer-intern-2027-usa/)**
+3. **Pinterest** — Solutions Engineer Intern 2027 (USA) 📍 San Francisco, CA, US; Remote, US · 🌐 Remote · **[Apply Direct ↗︎](https://www.pinterestcareers.com/jobs/8214788/solutions-engineer-intern-2027-usa/)**
+4. **Ema** — AI Resident UK/EMEA 📍 United Kingdom (Remote) · 🌐 Remote · **[Apply Direct ↗︎](https://jobs.ashbyhq.com/ema/c6ec72b0-dce1-422c-895f-9f22c4762a76)**
+5. **Tower Research Capital** — Intern - AI/ML 📍 Gurgaon · 🏢 In-Office · **[Apply Direct ↗︎](http://tower-research.com/open-positions/)**
+6. **HackerRank** — Software Development Engineer Intern 📍 Onsite in Bangalore · 🏢 In-Office · **[Apply Direct ↗︎](https://job-boards.greenhouse.io/hackerrank/jobs/8229735)**
+7. **Scopely** — Intern-Technical Artist - Royal Lounge Casino 📍 IN - Bangalore, India · 🏢 In-Office · **[Apply Direct ↗︎](https://job-boards.greenhouse.io/scopely/jobs/5440761008?gh_jid=5440761008)**
+8. **Scopely** — Intern - QA Engineer - Royal Lounge Casino 📍 IN - Bangalore, India · 🏢 In-Office · **[Apply Direct ↗︎](https://job-boards.greenhouse.io/scopely/jobs/5448999008?gh_jid=5448999008)**
+9. **Hyreo** — Udaan Intern- Engineering 📍 Bengaluru, Karnataka, India · 🏢 In-Office · **[Apply Direct ↗︎](https://job-boards.greenhouse.io/hyreo/jobs/5317624004)**
+10. **Hyreo** — Udaan Intern - Omnichannel 📍 Bengaluru, Karnataka, India · 🏢 In-Office · **[Apply Direct ↗︎](https://job-boards.greenhouse.io/hyreo/jobs/5334479004)**
+11. **Merkle Science** — Software Engineer - Intern (Frontend) 📍 Bangalore · ⚡ Hybrid · **[Apply Direct ↗︎](https://jobs.lever.co/merklescience/20675d00-156c-4f3f-a9bf-4cacee176bc2)**
+12. **Hevo Data** — Associate Software Development Engineer (SDE) Intern 📍 Bangalore, India · 🏢 In-Office · **[Apply Direct ↗︎](https://jobs.lever.co/hevodata/993a3ed3-3014-432f-b0f4-28d300d58d9a)**
+13. **Merkle Science** — Software Engineer(Intern)- Backend 📍 Bangalore · ⚡ Hybrid · **[Apply Direct ↗︎](https://jobs.lever.co/merklescience/e663b69b-264a-4bd7-b04d-fb3c0a824a28)**
+
+## 📊 Data Analytics (4)
+
+1. **Pinterest** — UX Quantitative Research Intern (USA) 📍 Remote, US · 🌐 Remote · **[Apply Direct ↗︎](https://www.pinterestcareers.com/jobs/8140217/ux-quantitative-research-intern-usa/)**
+2. **Anthropic** — Anthropic STEM Fellow 📍 Remote-Friendly, United States; San Francisco, CA · 🌐 Remote · **[Apply Direct ↗︎](https://job-boards.greenhouse.io/anthropic/jobs/5452403008)**
+3. **Anthropic** — Conceptual Reasoning Fellow 📍 Remote-Friendly, United States; San Francisco, CA · 🌐 Remote · **[Apply Direct ↗︎](https://job-boards.greenhouse.io/anthropic/jobs/5447080008)**
+4. **Airbound** — Mechanical Engineer - Internship 📍 Bangalore · 🏢 In-Office · **[Apply Direct ↗︎](https://jobs.ashbyhq.com/airbound/25b390f1-6cf8-4ea1-891b-75b9d3eb01dc)**
+
+## 🎨 Product Design & Media (12)
+
+1. **Atlys** — Launchpad Fellowship 📍 Delhi HQ · 🏢 In-Office · **[Apply Direct ↗︎](https://jobs.ashbyhq.com/atlys/53dcce66-f865-4d1e-a6b0-31433d844723)**
+2. **Instawork** — QA Interns || Robotics 📍 Bengaluru, Karnataka, India · 🏢 In-Office · **[Apply Direct ↗︎](https://job-boards.greenhouse.io/instawork/jobs/4590775006)**
+3. **Instawork** — Inventory Management Intern 📍 Bengaluru, Karnataka, India · 🏢 In-Office · **[Apply Direct ↗︎](https://job-boards.greenhouse.io/instawork/jobs/4646658006)**
+4. **Zinnov** — Intern - Employer Branding 📍 Hyderabad · 🏢 In-Office · **[Apply Direct ↗︎](https://job-boards.greenhouse.io/zinnov/jobs/4412599009)**
+5. **Instawork** — Trainer Intern 📍 Bengaluru, Karnataka, India · 🏢 In-Office · **[Apply Direct ↗︎](https://job-boards.greenhouse.io/instawork/jobs/4651150006)**
+6. **Glance** — UX Design - Intern 📍 Bengaluru · 🏢 In-Office · **[Apply Direct ↗︎](https://job-boards.greenhouse.io/glance/jobs/7916115)**
+7. **Zinnov** — Intern - Employer Branding 📍 Koramangala, Bangalore, Karnataka, India · 🏢 In-Office · **[Apply Direct ↗︎](https://job-boards.greenhouse.io/zinnov/jobs/4412579009)**
+8. **Groww** — Video Editor Intern 📍 Bengaluru-VTP, India · 🏢 In-Office · **[Apply Direct ↗︎](https://job-boards.eu.greenhouse.io/groww/jobs/4956817101)**
+9. **Instawork** — Quality Check Intern - Hardware 📍 Bengaluru, Karnataka, India · 🏢 In-Office · **[Apply Direct ↗︎](https://job-boards.greenhouse.io/instawork/jobs/4712960006)**
+10. **Instawork** — Hardware Intern — Robotics & AI 📍 Bengaluru, Karnataka, India · 🏢 In-Office · **[Apply Direct ↗︎](https://job-boards.greenhouse.io/instawork/jobs/4706444006)**
+11. **Atlys** — Fulfilment Intern 📍 Delhi HQ · 🏢 In-Office · **[Apply Direct ↗︎](https://jobs.ashbyhq.com/atlys/b64524ad-e4ab-4e0f-b4fe-f13ffc661a92)**
+12. **FamPay** — Copy Intern 📍 Bengaluru · 🏢 In-Office · **[Apply Direct ↗︎](https://jobs.lever.co/fampay/23dd18f9-a331-4115-98e9-e98c404c47c6)**
+
+## 🤖 AI/ML (2)
+
+1. **66degrees** — IT Service Desk Intern 📍 Bangalore · 🏢 In-Office · **[Apply Direct ↗︎](https://job-boards.greenhouse.io/66degrees/jobs/6127315004)**
+2. **Meraki Labs** — AI Engineer Intern 📍 Bangalore, India · 🏢 In-Office · **[Apply Direct ↗︎](https://jobs.ashbyhq.com/Meraki-Labs/93ff65d2-f0cd-4fd1-b76f-b2e350f2d6c8)**
+
+## 🛡️ Cybersecurity (2)
+
+1. **CloudSEK** — Security Consultant Intern 📍 Bengaluru, Karnataka, India · 🏢 In-Office · **[Apply Direct ↗︎](https://job-boards.greenhouse.io/cloudsek/jobs/6115382004)**
+2. **FamPay** — Security Engineer Intern 📍 Bengaluru · 🏢 In-Office · **[Apply Direct ↗︎](https://jobs.lever.co/fampay/bbbbbfd2-1855-4991-82d5-84ef57607c24)**
+
+## 🚀 Other Early-Career (1)
+
+1. **Hyreo** — Udaan Intern - Catalog 📍 Bengaluru, Karnataka, India · 🏢 In-Office · **[Apply Direct ↗︎](https://job-boards.greenhouse.io/hyreo/jobs/5334458004)**
+
+---
+
+*Every role is verified directly on official company career portals with zero broker sites and zero fees. Reachability does not guarantee that a role remains open. Happy applying and all the best!*

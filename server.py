@@ -1,10 +1,14 @@
 """FastAPI backend server for AI Orbit Pipeline.
 Provides endpoints to trigger the pipeline, stream live logs via SSE, and inspect status.
 """
+import os
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+
 import asyncio
 import json
 import logging
-import os
 import threading
 import time
 from collections import deque
@@ -835,6 +839,18 @@ async def trigger_flerken_bot_run(req: FlerkenRunRequest):
     flerken_bot_state["error"] = None
 
     def worker():
+        import importlib
+        try:
+            import flerken_bot.models
+            import flerken_bot.quality
+            import flerken_bot.render
+            import flerken_bot.cli
+            importlib.reload(flerken_bot.models)
+            importlib.reload(flerken_bot.quality)
+            importlib.reload(flerken_bot.render)
+            importlib.reload(flerken_bot.cli)
+        except Exception:
+            pass
         from flerken_bot.cli import run as flerken_run, create_substack_draft, load_config
 
         try:
@@ -1013,7 +1029,20 @@ async def download_flerken_bot_output(fmt: str):
 
 
 if __name__ == "__main__":
-    uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=False)
+    import socket
+
+    def is_port_in_use(p: int) -> bool:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            return s.connect_ex(("127.0.0.1", p)) == 0
+
+    env_port = os.getenv("PORT")
+    if env_port:
+        port = int(env_port)
+    elif is_port_in_use(8000):
+        port = 8001
+    else:
+        port = 8000
+    uvicorn.run("server:app", host="0.0.0.0", port=port, reload=False)
 
 
 

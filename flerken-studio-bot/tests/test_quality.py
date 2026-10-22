@@ -30,7 +30,7 @@ def test_deduplicate_by_url():
 
 
 def test_category_detects_software():
-    assert categorize(sample_job()) == "Software Development & Core Engineering Opportunities"
+    assert categorize(sample_job()) == "Software Development & Core Engineering"
 
 
 def test_official_link_reachable_is_marked_link_verified():
@@ -49,7 +49,7 @@ def test_render_has_categories_and_caveat():
     job = sample_job()
     job.category = categorize(job)
     text = render_newsletter([job])
-    assert "Software Development & Core Engineering Opportunities" in text
+    assert "Software Engineering" in text
     assert "does not guarantee that a role remains open" in text
 
 

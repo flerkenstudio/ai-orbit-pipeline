@@ -13,12 +13,12 @@ from .models import Job
 LOG = logging.getLogger(__name__)
 
 CATEGORY_RULES = [
-    ("Artificial Intelligence & Machine Learning Opportunities", ("artificial intelligence", "machine learning", "ai engineer", "ml engineer", "llm", "data science", "data scientist", "computer vision", "deep learning", "genai", "nlp")),
-    ("Cybersecurity Opportunities", ("security", "cyber", "soc ", "penetration", "iam", "infosec", "vulnerability")),
-    ("Data Analytics, Research & Intelligence Roles", ("data analyst", "business analyst", "risk analyst", "financial analyst", "ar analyst", "analytics", "research", "business intelligence", "quantitative", "economist")),
-    ("Software Development & Core Engineering Opportunities", ("software", "developer", "engineering", "engineer", "backend", "frontend", "full stack", "fullstack", "java", "python", "qa engineer", "sdet", "devops", "sre", "cloud", "mobile", "ios", "android", "systems")),
-    ("Product Design, Media & Content Strategy Roles", ("design", "ux", " ui ", "ui/ux", "content", "marketing artist", "video editor", "media", "copywriter", "youtube", "graphic", "brand")),
-    ("Business Operations, HR, Marketing & Strategy Roles", ("human resources", " hr ", "recruiter", "recruitment", "talent acquisition", "operations", "strategy", "sales", "finance", "business development", "banking", "alliances", "compliance", "support", "marketing", "coordinator", "partner")),
+    ("Artificial Intelligence & Machine Learning", ("artificial intelligence", "machine learning", "ai engineer", "ml engineer", "llm", "data science", "data scientist", "computer vision", "deep learning", "genai", "nlp")),
+    ("Cybersecurity & Infrastructure", ("security", "cyber", "soc ", "penetration", "iam", "infosec", "vulnerability")),
+    ("Data Analytics, Research & Intelligence", ("data analyst", "business analyst", "risk analyst", "financial analyst", "ar analyst", "analytics", "research", "business intelligence", "quantitative", "economist")),
+    ("Software Development & Core Engineering", ("software", "developer", "engineering", "engineer", "backend", "frontend", "full stack", "fullstack", "java", "python", "qa engineer", "sdet", "devops", "sre", "cloud", "mobile", "ios", "android", "systems")),
+    ("Product Design, Media & Content Strategy", ("design", "ux", " ui ", "ui/ux", "content", "marketing artist", "video editor", "media", "copywriter", "youtube", "graphic", "brand")),
+    ("Business Operations, HR, Marketing & Strategy", ("human resources", " hr ", "recruiter", "recruitment", "talent acquisition", "operations", "strategy", "sales", "finance", "business development", "banking", "alliances", "compliance", "support", "marketing", "coordinator", "partner")),
 ]
 
 
@@ -99,21 +99,22 @@ def deduplicate(jobs: list[Job]) -> list[Job]:
 from concurrent.futures import ThreadPoolExecutor
 import re
 
-EARLY_CAREER_INCLUDE = re.compile(
-    r"\b(intern|internship|new\s*grad|graduate|entry[\s\-]*level|junior|jr\.?|apprentice|trainee|fellow|associate|early[\s\-]*career|campus|fresher|university|co[\-\s]?op|sde[\s\-]*1|sde[\s\-]*i|swe[\s\-]*1|swe[\s\-]*i|analyst)\b",
+INTERNSHIP_INCLUDE = re.compile(
+    r"\b(intern|internship|interns|co[\-\s]?op|apprentice|apprenticeship|trainee|fellow|fellowship|working\s+student|resident|summer\s*associate)\b",
     re.IGNORECASE,
 )
-EARLY_CAREER_EXCLUDE = re.compile(
+INTERNSHIP_EXCLUDE = re.compile(
     r"\b(senior|sr\.?|staff|principal|director|vp|vice\s+president|head\s+of|lead|manager|distinguished|architect|iii|iv)\b",
     re.IGNORECASE,
 )
 
 
 def is_early_career(job: Job) -> bool:
+    """Strictly target internships, apprenticeships, and trainee roles (excluding regular full-time jobs)."""
     title = (job.title or "").strip()
-    if EARLY_CAREER_EXCLUDE.search(title):
+    if INTERNSHIP_EXCLUDE.search(title) and not INTERNSHIP_INCLUDE.search(title):
         return False
-    if EARLY_CAREER_INCLUDE.search(title):
+    if INTERNSHIP_INCLUDE.search(title):
         return True
     return False
 

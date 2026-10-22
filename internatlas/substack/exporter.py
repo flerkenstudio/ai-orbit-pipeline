@@ -95,6 +95,27 @@ def build_substack_metadata(jobs: list) -> dict:
     }
 
 
+def _format_work_mode(mode: str) -> str:
+    m = (mode or "").lower()
+    if "remote" in m:
+        return "🌐 Remote"
+    if "hybrid" in m:
+        return "⚡ Hybrid"
+    return "🏢 In-Office"
+
+
+SECTION_DISPLAY = {
+    "Hottest New Opportunities - Apply Fast": ("🔥", "Hottest New Opportunities"),
+    "Latest Software Development & Core Engineering Opportunities": ("💻", "Software Engineering"),
+    "Latest Artificial Intelligence & Machine Learning Opportunities": ("🤖", "AI/ML"),
+    "Latest Data Analytics, Research & Intelligence Roles": ("📊", "Data Analytics"),
+    "Latest Product Design, Media & Content Strategy Roles": ("🎨", "Product Design & Media"),
+    "Latest Business Operations, HR, Marketing & Strategy Roles": ("💼", "Business Ops & HR"),
+    "Cybersecurity": ("🛡️", "Cybersecurity"),
+    "Other Early-Career": ("🚀", "Other Early-Career"),
+}
+
+
 def generate_substack_markdown(jobs: list) -> str:
     """Generates exact Substack Markdown matching the user's newsletter template."""
     meta = build_substack_metadata(jobs)
@@ -121,15 +142,16 @@ def generate_substack_markdown(jobs: list) -> str:
         sec_jobs = meta["sections"].get(sec_title, [])
         if not sec_jobs:
             continue
-        lines.append(f"## **{sec_title}**")
+        emoji, label = SECTION_DISPLAY.get(sec_title, ("📌", sec_title))
+        lines.append(f"## **{emoji} {label} ({len(sec_jobs)})**")
         lines.append("")
         for idx, j in enumerate(sec_jobs, 1):
             comp = j.get("company", "").strip()
             role = j.get("role_title", "").strip()
             url = j.get("apply_url", "").strip()
             loc = j.get("location", "India").strip()
-            mode = j.get("work_mode", "In-Office").strip()
-            lines.append(f"{idx}. [{comp} hiring - {role}]({url}) ({loc} · {mode})")
+            mode_badge = _format_work_mode(j.get("work_mode", "In-Office"))
+            lines.append(f"{idx}. **{comp}** — {role} 📍 {loc} · {mode_badge} · **[Apply Direct ↗︎]({url})**")
         lines.append("")
 
     lines.append("---")
@@ -185,8 +207,9 @@ def export_substack_docx(jobs: list, export_dir=None) -> Path:
         if not sec_jobs:
             continue
 
+        emoji, label = SECTION_DISPLAY.get(sec_title, ("📌", sec_title))
         h2 = doc.add_heading(level=2)
-        run_h2 = h2.add_run(sec_title)
+        run_h2 = h2.add_run(f"{emoji} {label} ({len(sec_jobs)})")
         run_h2.bold = True
         run_h2.font.size = Pt(14)
         run_h2.font.color.rgb = RGBColor(30, 41, 59)
@@ -196,19 +219,22 @@ def export_substack_docx(jobs: list, export_dir=None) -> Path:
             role = j.get("role_title", "").strip()
             url = j.get("apply_url", "").strip()
             loc = j.get("location", "India").strip()
-            mode = j.get("work_mode", "In-Office").strip()
+            mode_badge = _format_work_mode(j.get("work_mode", "In-Office"))
 
             p = doc.add_paragraph()
             p.paragraph_format.space_after = Pt(4)
             r_num = p.add_run(f"{idx}. ")
             r_num.font.size = Pt(11)
 
-            link_text = f"{comp} hiring - {role}"
-            _add_hyperlink(p, url, link_text)
+            r_comp = p.add_run(comp)
+            r_comp.bold = True
+            r_comp.font.size = Pt(11)
 
-            r_loc = p.add_run(f" ({loc} · {mode})")
-            r_loc.font.size = Pt(11)
-            r_loc.font.color.rgb = RGBColor(55, 65, 81)
+            r_mid = p.add_run(f" — {role} 📍 {loc} · {mode_badge} · ")
+            r_mid.font.size = Pt(11)
+            r_mid.font.color.rgb = RGBColor(55, 65, 81)
+
+            _add_hyperlink(p, url, "Apply Direct ↗︎")
 
     doc.add_paragraph("─" * 55)
     p_foot = doc.add_paragraph()

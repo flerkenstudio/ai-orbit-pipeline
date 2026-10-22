@@ -51685,7 +51685,7 @@
     "id": "173d064f-a0c2-5f99-bf91-066ac535801c",
     "entity_type": "Tool",
     "name": "CodePilot AI",
-    "description": "Real-time code completion. Automated unit test generation",
+    "description": "CodePilot is a powerful AI coding copilot for teams.",
     "url": "https://codepilot.ai/",
     "logo_url": "https://codepilot.ai/favicon.png",
     "categories": [
@@ -51698,7 +51698,7 @@
     },
     "verified": true,
     "http_status": 200,
-    "last_verified": "2026-09-21",
+    "last_verified": "2026-10-22",
     "pricing": "Freemium",
     "features": [
       "Real-time code completion",
